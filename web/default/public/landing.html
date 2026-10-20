@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>APIVEL — Reliable Chinese AI Model APIs for Global Developers</title>
+  <meta name="description" content="Access Kimi, Qwen, DeepSeek, Seedance and other leading Chinese AI models through one OpenAI-compatible API built for coding agents, tool calling and fallback routing." />
+  <!-- Umami Analytics -->
+  <script defer src="https://umami-three-lac.vercel.app/script.js" data-website-id="3eb7eaad-2d3a-48a7-af44-ee83b113074f"></script>
+
+  <style>
+    :root {
+      --black: #000000;
+      --near-black: #1d1d1f;
+      --dark-card: #161617;
+      --dark-card-2: #242426;
+      --light: #f5f5f7;
+      --white: #ffffff;
+      --muted: rgba(255, 255, 255, 0.68);
+      --muted-dark: rgba(0, 0, 0, 0.62);
+      --blue: #0071e3;
+      --blue-dark: #0066cc;
+      --blue-light: #2997ff;
+      --border-light: rgba(255,255,255,0.16);
+      --border-dark: rgba(0,0,0,0.08);
+      --max: 1080px;
+      --radius: 22px;
+      --shadow: rgba(0, 0, 0, 0.22) 3px 5px 30px 0px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--black);
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: var(--near-black);
+      background: var(--light);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      height: 48px;
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .nav-inner {
+      max-width: 1160px;
+      height: 48px;
+      margin: 0 auto;
+      padding: 0 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.12px;
+    }
+
+    .brand-mark {
+      width: 20px;
+      height: 20px;
+      border-radius: 7px;
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,0.95), rgba(255,255,255,0.08) 22%, transparent 34%),
+        linear-gradient(135deg, #ffffff, #7ab8ff 42%, #0071e3);
+      box-shadow: 0 0 28px rgba(0,113,227,0.45);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 26px;
+      color: rgba(255,255,255,0.76);
+      font-size: 12px;
+      letter-spacing: -0.12px;
+    }
+
+    .nav-links a:hover {
+      color: white;
+    }
+
+    .nav-cta {
+      color: white;
+      background: var(--blue);
+      padding: 6px 13px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+      transition: transform .2s ease, background .2s ease;
+    }
+
+    .nav-cta:hover {
+      background: #147ce5;
+      transform: translateY(-1px);
+    }
+
+    .hero {
+      min-height: 100vh;
+      padding: 118px 22px 72px;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(0,113,227,0.22), transparent 28%),
+        radial-gradient(circle at 50% 74%, rgba(255,255,255,0.12), transparent 30%),
+        #000000;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 55%;
+      transform: translate(-50%, -50%);
+      width: min(980px, 92vw);
+      height: min(980px, 92vw);
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, rgba(255,255,255,0.10), transparent 58%);
+      filter: blur(1px);
+      opacity: 0.78;
+      pointer-events: none;
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+      max-width: 1060px;
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 13px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: rgba(255,255,255,0.86);
+      font-size: 13px;
+      letter-spacing: -0.12px;
+      margin-bottom: 24px;
+    }
+
+    .pulse {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #35c759;
+      box-shadow: 0 0 0 5px rgba(53,199,89,0.15);
+    }
+
+    h1 {
+      font-size: clamp(46px, 7.2vw, 92px);
+      line-height: 0.98;
+      letter-spacing: -4.8px;
+      font-weight: 650;
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+
+    .hero-subtitle {
+      margin: 25px auto 0;
+      max-width: 760px;
+      color: #ffffff !important;
+      opacity: 0.85 !important;
+      font-size: clamp(20px, 2.1vw, 28px);
+      line-height: 1.24;
+      letter-spacing: -0.65px;
+      font-weight: 400;
+    }
+
+    .hero-actions {
+      margin-top: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 46px;
+      padding: 12px 22px;
+      border-radius: 999px;
+      font-size: 17px;
+      line-height: 1;
+      letter-spacing: -0.28px;
+      font-weight: 500;
+      transition: transform .22s ease, background .22s ease, border-color .22s ease;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--blue);
+      color: white;
+      border: 1px solid var(--blue);
+    }
+
+    .btn-primary:hover {
+      background: #147ce5;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary-dark {
+      color: var(--blue-light);
+      border: 1px solid rgba(41,151,255,0.55);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .btn-secondary-dark:hover {
+      background: rgba(41,151,255,0.11);
+      transform: translateY(-1px);
+    }
+
+    .trust-row {
+      margin: 42px auto 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: rgba(255,255,255,0.44);
+      font-size: 13px;
+      letter-spacing: -0.12px;
+    }
+
+    .model-pill {
+      color: rgba(255,255,255,0.74);
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 999px;
+      padding: 7px 11px;
+    }
+
+    .hero-console {
+      margin: 58px auto 0;
+      max-width: 860px;
+      border-radius: 26px;
+      background: rgba(22,22,23,0.88);
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: 0 34px 90px rgba(0,0,0,0.52);
+      overflow: hidden;
+      text-align: left;
+    }
+
+    .console-top {
+      height: 42px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 18px;
+      background: rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+    }
+
+    .dot.red { background: #ff5f57; }
+    .dot.yellow { background: #ffbd2e; }
+    .dot.green { background: #28c840; }
+
+    pre {
+      padding: 24px;
+      overflow-x: auto;
+      color: #f5f5f7;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 13.5px;
+      line-height: 1.62;
+      letter-spacing: -0.1px;
+    }
+
+    .code-muted { color: rgba(255,255,255,0.42); }
+    .code-blue { color: #7ab8ff; }
+    .code-green { color: #8ef0b2; }
+    .code-white { color: #ffffff; }
+
+    section {
+      position: relative;
+    }
+
+    .section-light {
+      background: var(--light);
+      color: var(--near-black);
+      padding: 96px 22px;
+    }
+
+    .section-dark {
+      background: var(--black);
+      color: white;
+      padding: 108px 22px;
+    }
+
+    .container {
+      max-width: var(--max);
+      margin: 0 auto;
+    }
+
+    .section-header {
+      text-align: center;
+      max-width: 860px;
+      margin: 0 auto 54px;
+    }
+
+    .kicker {
+      color: var(--blue-dark);
+      font-size: 17px;
+      line-height: 1.35;
+      font-weight: 600;
+      letter-spacing: -0.35px;
+      margin-bottom: 12px;
+    }
+
+    .section-dark .kicker {
+      color: var(--blue-light);
+    }
+
+    h2 {
+      font-size: clamp(38px, 5vw, 64px);
+      line-height: 1.04;
+      letter-spacing: -2.8px;
+      font-weight: 650;
+    }
+
+    .section-copy {
+      margin: 18px auto 0;
+      max-width: 740px;
+      color: var(--muted-dark);
+      font-size: clamp(19px, 2vw, 24px);
+      line-height: 1.32;
+      letter-spacing: -0.55px;
+    }
+
+    .section-dark .section-copy {
+      color: #ffffff !important;
+      opacity: 0.8 !important;
+    }
+
+    .pain-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 44px;
+    }
+
+    .pain-card {
+      background: white;
+      border-radius: 24px;
+      padding: 28px;
+      min-height: 230px;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+    }
+
+    .pain-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: #e8f2ff;
+      color: var(--blue-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      margin-bottom: 22px;
+    }
+
+    h3 {
+      font-size: 25px;
+      line-height: 1.12;
+      letter-spacing: -0.8px;
+      font-weight: 650;
+      margin-bottom: 12px;
+    }
+
+    .card-copy {
+      color: rgba(0,0,0,0.62);
+      font-size: 16px;
+      line-height: 1.45;
+      letter-spacing: -0.28px;
+    }
+
+    .models-stage {
+      margin-top: 52px;
+      display: grid;
+      grid-template-columns: 1.08fr 0.92fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .model-main {
+      border-radius: 30px;
+      background:
+        radial-gradient(circle at 50% 18%, rgba(41,151,255,0.28), transparent 34%),
+        #101011;
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 42px;
+      min-height: 560px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .model-main::after {
+      content: "";
+      position: absolute;
+      width: 520px;
+      height: 520px;
+      border-radius: 50%;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -36%);
+      background:
+        radial-gradient(circle, rgba(255,255,255,0.14), rgba(41,151,255,0.12) 26%, transparent 58%);
+      pointer-events: none;
+    }
+
+    .model-main-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .model-label {
+      color: var(--blue-light);
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.25px;
+      margin-bottom: 12px;
+    }
+
+    .model-title {
+      color: white;
+      font-size: clamp(40px, 5.5vw, 72px);
+      line-height: 0.98;
+      letter-spacing: -3px;
+      font-weight: 650;
+      max-width: 520px;
+    }
+
+    .model-desc {
+      margin-top: 18px;
+      max-width: 520px;
+      color: rgba(255,255,255,0.66);
+      font-size: 20px;
+      line-height: 1.34;
+      letter-spacing: -0.45px;
+    }
+
+    .orbital {
+      position: relative;
+      z-index: 1;
+      margin: 48px auto 12px;
+      width: min(390px, 84vw);
+      height: min(390px, 84vw);
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .orbital::before,
+    .orbital::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .orbital::before {
+      inset: 54px;
+    }
+
+    .orbital::after {
+      inset: 112px;
+    }
+
+    .core {
+      width: 112px;
+      height: 112px;
+      border-radius: 34px;
+      background:
+        radial-gradient(circle at 30% 20%, white, rgba(255,255,255,0.24) 26%, transparent 38%),
+        linear-gradient(135deg, #ffffff, #7ab8ff 42%, #0071e3);
+      box-shadow: 0 0 80px rgba(41,151,255,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #07111f;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -0.66px;
+    }
+
+    .orbit-pill {
+      position: absolute;
+      padding: 8px 11px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: rgba(255,255,255,0.82);
+      font-size: 13px;
+      letter-spacing: -0.18px;
+      backdrop-filter: blur(12px);
+    }
+
+    .p1 { top: 22px; left: 50%; transform: translateX(-50%); }
+    .p2 { right: 6px; top: 42%; }
+    .p3 { bottom: 35px; left: 52%; }
+    .p4 { left: 4px; top: 42%; }
+    .p5 { left: 78px; bottom: 76px; }
+
+    .model-side {
+      display: grid;
+      grid-template-rows: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .mini-card {
+      border-radius: 30px;
+      background: #161617;
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 30px;
+      min-height: 168px;
+    }
+
+    .mini-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .mini-name {
+      color: white;
+      font-size: 26px;
+      line-height: 1.1;
+      letter-spacing: -0.8px;
+      font-weight: 650;
+    }
+
+    .mini-badge {
+      color: rgba(255,255,255,0.66);
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .mini-copy {
+      color: rgba(255,255,255,0.62);
+      font-size: 16px;
+      line-height: 1.42;
+      letter-spacing: -0.28px;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-top: 52px;
+    }
+
+    .feature-card {
+      background: white;
+      border-radius: 30px;
+      padding: 34px;
+      min-height: 330px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .feature-visual {
+      width: 100%;
+      height: 122px;
+      border-radius: 21px;
+      background: var(--light);
+      margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .visual-lines {
+      position: absolute;
+      inset: 24px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .line {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.10);
+    }
+
+    .line.blue {
+      background: rgba(0,113,227,0.68);
+    }
+
+    .line.short {
+      width: 58%;
+    }
+
+    .routing-visual {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .node {
+      width: 38px;
+      height: 38px;
+      border-radius: 13px;
+      background: white;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.08);
+    }
+
+    .node.blue {
+      background: var(--blue);
+      box-shadow: 0 0 28px rgba(0,113,227,0.32);
+    }
+
+    .arrow {
+      color: rgba(0,0,0,0.32);
+      font-size: 22px;
+    }
+
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+      margin-top: 38px;
+    }
+
+    .tool {
+      min-height: 88px;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.86);
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.32px;
+      text-align: center;
+      padding: 12px;
+    }
+
+    .workflow {
+      margin-top: 48px;
+      border-radius: 32px;
+      background: #101011;
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 24px;
+      overflow: hidden;
+    }
+
+    .workflow-row {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .workflow-copy {
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .workflow-copy h3 {
+      color: white;
+      font-size: 34px;
+      letter-spacing: -1.2px;
+    }
+
+    .workflow-copy p {
+      color: rgba(255,255,255,0.62);
+      font-size: 18px;
+      line-height: 1.45;
+      letter-spacing: -0.35px;
+      margin-top: 10px;
+    }
+
+    .config-card {
+      background: rgba(0,0,0,0.45);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 24px;
+      overflow: hidden;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-top: 48px;
+    }
+
+    .price-card {
+      background: white;
+      border-radius: 30px;
+      padding: 34px;
+      min-height: 430px;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+
+    .price-card.highlight {
+      background: #000;
+      color: white;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.28);
+      transform: translateY(-8px);
+    }
+
+    .price-label {
+      font-size: 16px;
+      font-weight: 650;
+      letter-spacing: -0.28px;
+      margin-bottom: 20px;
+      color: var(--blue-dark);
+    }
+
+    .highlight .price-label {
+      color: var(--blue-light);
+    }
+
+    .price-title {
+      font-size: 32px;
+      line-height: 1.05;
+      letter-spacing: -1.1px;
+      font-weight: 650;
+      margin-bottom: 14px;
+    }
+
+    .price-desc {
+      color: rgba(0,0,0,0.60);
+      font-size: 16px;
+      line-height: 1.45;
+      letter-spacing: -0.28px;
+      margin-bottom: 26px;
+    }
+
+    .highlight .price-desc {
+      color: rgba(255,255,255,0.62);
+    }
+
+    .list {
+      list-style: none;
+      display: grid;
+      gap: 12px;
+      margin-top: auto;
+      color: rgba(0,0,0,0.68);
+      font-size: 15px;
+      line-height: 1.35;
+      letter-spacing: -0.24px;
+    }
+
+    .highlight .list {
+      color: rgba(255,255,255,0.70);
+    }
+
+    .list li::before {
+      content: "✓";
+      color: var(--blue-dark);
+      font-weight: 700;
+      margin-right: 8px;
+    }
+
+    .highlight .list li::before {
+      color: var(--blue-light);
+    }
+
+    .price-cta {
+      margin-top: 28px;
+    }
+
+    .btn-light {
+      background: white;
+      color: var(--near-black);
+      border: 1px solid white;
+    }
+
+    .btn-outline-light {
+      color: var(--blue-dark);
+      border: 1px solid rgba(0,113,227,0.35);
+      background: transparent;
+    }
+
+    .seedance {
+      min-height: 760px;
+      background:
+        radial-gradient(circle at 50% 34%, rgba(255,255,255,0.16), transparent 24%),
+        radial-gradient(circle at 40% 54%, rgba(41,151,255,0.22), transparent 32%),
+        #000;
+      color: white;
+      padding: 118px 22px;
+      overflow: hidden;
+    }
+
+    .seedance-card {
+      max-width: 980px;
+      margin: 54px auto 0;
+      border-radius: 36px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.13);
+      backdrop-filter: blur(18px);
+      padding: 36px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      align-items: center;
+    }
+
+    .video-frame {
+      aspect-ratio: 16 / 10;
+      border-radius: 28px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.20), rgba(255,255,255,0.04)),
+        radial-gradient(circle at 60% 40%, rgba(41,151,255,0.46), transparent 34%),
+        #111;
+      border: 1px solid rgba(255,255,255,0.14);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 34px 90px rgba(0,0,0,0.45);
+    }
+
+    .play {
+      position: absolute;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.84);
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+      font-size: 28px;
+      padding-left: 4px;
+    }
+
+    .seedance-copy h3 {
+      color: white;
+      font-size: 38px;
+      line-height: 1.06;
+      letter-spacing: -1.4px;
+      margin-bottom: 14px;
+    }
+
+    .seedance-copy p {
+      color: #ffffff !important;
+      opacity: 0.85 !important;
+      font-size: 18px;
+      line-height: 1.45;
+      letter-spacing: -0.34px;
+      margin-bottom: 24px;
+    }
+
+    .faq {
+      max-width: 900px;
+      margin: 44px auto 0;
+      display: grid;
+      gap: 12px;
+    }
+
+    details {
+      background: white;
+      border-radius: 22px;
+      padding: 22px 24px;
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+
+    summary {
+      cursor: pointer;
+      list-style: none;
+      font-size: 19px;
+      font-weight: 650;
+      letter-spacing: -0.45px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary::after {
+      content: "+";
+      color: var(--blue-dark);
+      font-size: 24px;
+      font-weight: 400;
+    }
+
+    details[open] summary::after {
+      content: "–";
+    }
+
+    details p {
+      margin-top: 14px;
+      color: rgba(0,0,0,0.62);
+      font-size: 16px;
+      line-height: 1.52;
+      letter-spacing: -0.25px;
+    }
+
+    .final-cta {
+      background: var(--black);
+      color: white;
+      padding: 128px 22px;
+      text-align: center;
+    }
+
+    .final-cta h2 {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .final-cta p {
+      max-width: 720px;
+      margin: 22px auto 0;
+      color: rgba(255,255,255,0.68);
+      font-size: 23px;
+      line-height: 1.32;
+      letter-spacing: -0.55px;
+    }
+
+    footer {
+      background: #000;
+      color: rgba(255,255,255,0.48);
+      border-top: 1px solid rgba(255,255,255,0.10);
+      padding: 34px 22px 46px;
+      font-size: 13px;
+      letter-spacing: -0.14px;
+    }
+
+    .footer-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a:hover {
+      color: white;
+    }
+
+    @media (max-width: 920px) {
+      .nav-links {
+        display: none;
+      }
+
+      h1 {
+        letter-spacing: -2.6px;
+      }
+
+      .pain-grid,
+      .features,
+      .pricing-grid,
+      .models-stage,
+      .workflow-row,
+      .seedance-card {
+        grid-template-columns: 1fr;
+      }
+
+      .model-side {
+        grid-template-rows: auto;
+      }
+
+      .tool-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .price-card.highlight {
+        transform: none;
+      }
+
+      .section-light,
+      .section-dark,
+      .seedance,
+      .final-cta {
+        padding-left: 18px;
+        padding-right: 18px;
+      .hero-actions .btn {
+        max-width: 320px;
+      }
+    }
+      }
+    }
+
+    @media (max-width: 560px) {
+      .hero {
+        padding-top: 92px;
+      }
+
+      h1 {
+        font-size: 44px;
+        letter-spacing: -2.2px;
+      }
+
+      .hero-sub {
+        font-size: 20px;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      .hero-actions {
+        width: 100%;
+      }
+
+      .hero-actions .btn {
+        max-width: 320px;
+      }
+
+      .pain-card,
+      .feature-card,
+      .price-card,
+      .model-main,
+      .mini-card,
+      .seedance-card {
+        border-radius: 24px;
+        padding: 26px;
+      }
+
+      pre {
+        font-size: 12.5px;
+        padding: 18px;
+      }
+
+      .tool-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .orbital {
+        width: 300px;
+        height: 300px;
+      }
+
+      .orbit-pill {
+        font-size: 12px;
+      }
+
+      .p5 {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <section class="hero" style="padding-top: 80px;">
+      <div class="hero-inner">
+        <div class="eyebrow">
+          <span class="pulse"></span>
+          Seedance 2.0 API early access now open
+        </div>
+
+        <h1>China’s best AI models. One global API.</h1>
+
+        <p class="hero-sub">
+          Access Kimi, Qwen, DeepSeek, Seedance and more through an OpenAI-compatible gateway built for coding agents, tool calling, long-context workflows and fallback routing.
+        </p>
+
+        <div class="hero-actions">
+          <a href="#join" class="btn btn-primary">Join Early Access →</a>
+          <a href="#seedance" class="btn btn-secondary-dark">Request Seedance API</a>
+        </div>
+
+        <div class="trust-row" aria-label="Supported model families">
+          <span>Built for</span>
+          <span class="model-pill">Kimi K2.6</span>
+          <span class="model-pill">Qwen3 Coder</span>
+          <span class="model-pill">DeepSeek R1</span>
+          <span class="model-pill">Seedance 2.0</span>
+          <span class="model-pill">GLM</span>
+        </div>
+
+        <div class="hero-console" aria-label="API example">
+          <div class="console-top">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+          </div>
+          <pre><span class="code-muted">curl</span> <span class="code-blue">https://api.apivel.com/v1/chat/completions</span> \
+  -H <span class="code-green">"Authorization: Bearer $APIVEL_API_KEY"</span> \
+  -H <span class="code-green">"Content-Type: application/json"</span> \
+  -d '{
+    <span class="code-blue">"model"</span>: <span class="code-green">"kimi-k2.6"</span>,
+    <span class="code-blue">"fallback"</span>: [<span class="code-green">"qwen3-coder"</span>, <span class="code-green">"deepseek-v3.1"</span>],
+    <span class="code-blue">"messages"</span>: [
+      { <span class="code-blue">"role"</span>: <span class="code-green">"user"</span>, <span class="code-blue">"content"</span>: <span class="code-green">"Refactor this repo safely."</span> }
+    ],
+    <span class="code-blue">"stream"</span>: true
+  }'</pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-light">
+      <div class="container">
+        <div class="section-header">
+          <div class="kicker">The problem</div>
+          <h2>Chinese AI models are powerful. Accessing them globally is not.</h2>
+          <p class="section-copy">
+            Developers outside China want Kimi, Qwen, DeepSeek and Seedance. But production access is still fragmented, unstable and hard to integrate into agent workflows.
+          </p>
+        </div>
+
+        <div class="pain-grid">
+          <div class="pain-card">
+            <div class="pain-icon">1</div>
+            <h3>Access friction</h3>
+            <p class="card-copy">
+              Local payment requirements, region restrictions, Chinese-only onboarding and provider-specific account setup slow down global teams.
+            </p>
+          </div>
+
+          <div class="pain-card">
+            <div class="pain-icon">2</div>
+            <h3>Agent breakage</h3>
+            <p class="card-copy">
+              Coding agents fail when requests hit 429s, long-context calls hang, or tool-calling behavior differs between model providers.
+            </p>
+          </div>
+
+          <div class="pain-card">
+            <div class="pain-icon">3</div>
+            <h3>Too many APIs</h3>
+            <p class="card-copy">
+              Every model family has its own docs, SDK quirks, model names and reliability profile. Your product should not need to handle all of that.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="models" class="section-dark">
+      <div class="container">
+        <div class="section-header">
+          <div class="kicker">One gateway</div>
+          <h2>Use the right Chinese model for every workflow.</h2>
+          <p class="section-copy">
+            Start with one OpenAI-compatible endpoint. Route across coding, reasoning, long-context and video generation models as your product grows.
+          </p>
+        </div>
+
+        <div class="models-stage">
+          <div class="model-main">
+            <div class="model-main-content">
+              <div class="model-label">APIVEL Model Gateway</div>
+              <div class="model-title">Kimi. Qwen. DeepSeek. Seedance.</div>
+              <p class="model-desc">
+                A unified API layer for the Chinese model ecosystem, optimized for global developers and production agent workflows.
+              </p>
+            </div>
+
+            <div class="orbital" aria-hidden="true">
+              <span class="orbit-pill p1">Kimi K2.6</span>
+              <span class="orbit-pill p2">Qwen3 Coder</span>
+              <span class="orbit-pill p3">DeepSeek R1</span>
+              <span class="orbit-pill p4">Seedance 2.0</span>
+              <span class="orbit-pill p5">GLM / MiniMax</span>
+              <div class="core">APIVEL</div>
+            </div>
+          </div>
+
+          <div class="model-side">
+            <div class="mini-card">
+              <div class="mini-top">
+                <div class="mini-name">Coding agents</div>
+                <div class="mini-badge">Kimi · Qwen · DeepSeek</div>
+              </div>
+              <p class="mini-copy">
+                Long-context repo analysis, refactors, code generation, function calling and multi-step coding workflows.
+              </p>
+            </div>
+
+            <div class="mini-card">
+              <div class="mini-top">
+                <div class="mini-name">Reasoning APIs</div>
+                <div class="mini-badge">R1 · K2 · Max</div>
+              </div>
+              <p class="mini-copy">
+                Route reasoning-heavy tasks to high-performing Chinese models without changing your application code.
+              </p>
+            </div>
+
+            <div class="mini-card">
+              <div class="mini-top">
+                <div class="mini-name">AI video</div>
+                <div class="mini-badge">Seedance 2.0</div>
+              </div>
+              <p class="mini-copy">
+                Programmatic access to next-generation video generation for creative tools, marketing apps and automation platforms.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="agents" class="section-light">
+      <div class="container">
+        <div class="section-header">
+          <div class="kicker">Built for agents</div>
+          <h2>Not just chat completions. Production agent infrastructure.</h2>
+          <p class="section-copy">
+            APIVEL is designed around the failure modes that matter most for coding agents and automated workflows.
+          </p>
+        </div>
+
+        <div class="features">
+          <div class="feature-card">
+            <div>
+              <div class="feature-visual">
+                <div class="visual-lines">
+                  <div class="line blue"></div>
+                  <div class="line"></div>
+                  <div class="line short"></div>
+                  <div class="line"></div>
+                </div>
+              </div>
+              <h3>OpenAI-compatible</h3>
+              <p class="card-copy">
+                Use your existing OpenAI SDK, base URL setting, streaming client and API key pattern. Minimal integration work.
+              </p>
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <div>
+              <div class="feature-visual">
+                <div class="visual-lines">
+                  <div class="line"></div>
+                  <div class="line blue short"></div>
+                  <div class="line"></div>
+                  <div class="line blue"></div>
+                </div>
+              </div>
+              <h3>Tool-calling ready</h3>
+              <p class="card-copy">
+                Better suited for function calling, structured outputs, JSON arguments and multi-step agent loops.
+              </p>
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <div>
+              <div class="feature-visual routing-visual">
+                <span class="node blue"></span>
+                <span class="arrow">→</span>
+                <span class="node"></span>
+                <span class="arrow">→</span>
+                <span class="node"></span>
+              </div>
+              <h3>Fallback routing</h3>
+              <p class="card-copy">
+                Reduce 429s, provider outages and model-specific failures by routing requests to compatible alternatives.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-grid" aria-label="Compatible tools">
+          <div class="tool">Cline</div>
+          <div class="tool">Continue</div>
+          <div class="tool">Claude Code Router</div>
+          <div class="tool">Roo</div>
+          <div class="tool">browser-use</div>
+          <div class="tool">OpenAI SDK</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-dark">
+      <div class="container">
+        <div class="section-header">
+          <div class="kicker">Drop-in configuration</div>
+          <h2>Change the base URL. Keep your workflow.</h2>
+          <p class="section-copy">
+            Connect your coding agent or AI product to APIVEL as an OpenAI-compatible provider.
+          </p>
+        </div>
+
+        <div class="workflow">
+          <div class="workflow-row">
+            <div class="workflow-copy">
+              <h3>One endpoint for your agent stack.</h3>
+              <p>
+                Choose Kimi for long-context coding, Qwen for tool-heavy agent loops, DeepSeek for reasoning, and fallback when providers throttle or fail.
+              </p>
+            </div>
+
+            <div class="config-card">
+              <div class="console-top">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
+              </div>
+              <pre><span class="code-muted"># Continue / Cline / OpenAI-compatible clients</span>
+
+<span class="code-blue">base_url</span>: <span class="code-green">https://api.apivel.com/v1</span>
+<span class="code-blue">api_key</span>: <span class="code-green">$APIVEL_API_KEY</span>
+<span class="code-blue">model</span>: <span class="code-green">kimi-k2.6</span>
+
+<span class="code-muted"># Optional production routing</span>
+<span class="code-blue">fallback</span>:
+  - <span class="code-green">qwen3-coder</span>
+  - <span class="code-green">deepseek-v3.1</span></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="seedance" class="seedance">
+      <div class="container">
+        <div class="section-header">
+          <div class="kicker">Early access</div>
+          <h2>Seedance 2.0 API for builders who need AI video now.</h2>
+          <p class="section-copy">
+            APIVEL is opening early access for developers building with next-generation Chinese video generation models.
+          </p>
+        </div>
+
+        <div class="seedance-card">
+          <div class="video-frame" aria-label="Seedance video generation preview">
+            <div class="play">▶</div>
+          </div>
+
+          <div class="seedance-copy">
+            <h3>Programmatic video generation.</h3>
+            <p>
+              Best for AI video apps, creative automation, marketing workflows, image-to-video products, agencies and studios building at scale.
+            </p>
+            <a href="#join" class="btn btn-primary">Request Seedance Access →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pricing" class="section-light">
+      <div class="container">
+        <div class="section-header">
+          <div class="kicker">Simple path to production</div>
+          <h2>Start with early access. Scale into reliable routing.</h2>
+          <p class="section-copy">
+            APIVEL is designed for developers testing Chinese models today and teams preparing production agent workloads.
+          </p>
+        </div>
+
+        <div class="pricing-grid">
+          <div class="price-card">
+            <div class="price-label">Explore</div>
+            <div class="price-title">Model access requests</div>
+            <p class="price-desc">
+              Tell us which Chinese models you need and what you are building.
+            </p>
+            <ul class="list">
+              <li>Request Kimi, Qwen, DeepSeek or GLM</li>
+              <li>Use-case based onboarding</li>
+              <li>Developer documentation preview</li>
+              <li>Best for early experiments</li>
+            </ul>
+            <div class="price-cta">
+              <a href="#join" class="btn btn-outline-light">Request a Model</a>
+            </div>
+          </div>
+
+          <div class="price-card highlight">
+            <div class="price-label">Recommended</div>
+            <div class="price-title">Seedance early access</div>
+            <p class="price-desc">
+              Get priority access to Seedance 2.0 API for AI video generation products.
+            </p>
+            <ul class="list">
+              <li>Seedance 2.0 API access</li>
+              <li>Text-to-video and image-to-video workflows</li>
+              <li>Priority onboarding</li>
+              <li>Best for video products and agencies</li>
+            </ul>
+            <div class="price-cta">
+              <a href="#join" class="btn btn-primary">Join Early Access</a>
+            </div>
+          </div>
+
+          <div class="price-card">
+            <div class="price-label">Production</div>
+            <div class="price-title">Gateway routing</div>
+            <p class="price-desc">
+              For teams that need reliability, fallback policies and higher usage limits.
+            </p>
+            <ul class="list">
+              <li>OpenAI-compatible gateway</li>
+              <li>Fallback routing policies</li>
+              <li>Higher rate limits</li>
+              <li>Team API keys and support</li>
+            </ul>
+            <div class="price-cta">
+              <a href="#join" class="btn btn-outline-light">Talk to Us</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq" class="section-light" style="padding-top: 24px;">
+      <div class="container">
+        <div class="section-header">
+          <div class="kicker">FAQ</div>
+          <h2>Built for global developers accessing Chinese AI.</h2>
+        </div>
+
+        <div class="faq">
+          <details open>
+            <summary>Is APIVEL a model provider?</summary>
+            <p>
+              APIVEL is an API gateway. We help global developers access leading Chinese AI models through a simpler, more reliable and OpenAI-compatible interface.
+            </p>
+          </details>
+
+          <details>
+            <summary>Which models are the priority?</summary>
+            <p>
+              The priority model families are Kimi, Qwen, DeepSeek and Seedance. APIVEL is also designed to expand toward GLM, MiniMax, Doubao, Seedream and other Chinese model providers.
+            </p>
+          </details>
+
+          <details>
+            <summary>Can I use it with coding agents?</summary>
+            <p>
+              Yes. APIVEL is positioned specifically for coding agents and agentic workflows, including tools such as Cline, Continue, Claude Code Router, Roo, browser-use and OpenAI-compatible SDK clients.
+            </p>
+          </details>
+
+          <details>
+            <summary>Does it support fallback routing?</summary>
+            <p>
+              Fallback routing is a core product direction. The goal is to reduce workflow failures caused by rate limits, provider instability, regional access issues or model-specific outages.
+            </p>
+          </details>
+
+          <details>
+            <summary>Is Seedance 2.0 available now?</summary>
+            <p>
+              Seedance 2.0 API is available through early access. Developers building AI video products, creative automation tools or marketing video workflows should apply for priority onboarding.
+            </p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section id="join" class="final-cta">
+      <div class="container">
+        <h2>Build on China’s leading AI models without the integration pain.</h2>
+        <p>
+          Join APIVEL early access for Seedance 2.0, Kimi, Qwen, DeepSeek and production-grade Chinese AI model routing.
+        </p>
+
+        <div class="hero-actions">
+          <a href="mailto:hello@apivel.com?subject=APIVEL Early Access Request&body=Hi APIVEL team,%0D%0A%0D%0AI'd like to request early access.%0D%0A%0D%0AModels needed:%0D%0AUse case:%0D%0AExpected monthly usage:%0D%0ACompany / product:%0D%0A" class="btn btn-primary">Join Early Access →</a>
+          <a href="mailto:hello@apivel.com?subject=Seedance 2.0 API Access Request" class="btn btn-secondary-dark">Request Seedance API</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <strong style="color:white;">APIVEL</strong>
+        <span> · Reliable Chinese AI Model APIs for Global Developers</span>
+      </div>
+
+      <div class="footer-links">
+        <a href="#models">Models</a>
+        <a href="#agents">Agents</a>
+        <a href="#seedance">Seedance</a>
+        <a href="#pricing">Pricing</a>
+        <a href="mailto:hello@apivel.com">Contact</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+# 指引爬虫找到你的博客网站地图
+Sitemap: https://apivel.com/blog/sitemap-index.xml
+# 如果要区分 AI 训练与实时 AI 搜索：
+# 屏蔽 GPT training crawler
+User-agent: GPTBot
+Disallow: /
+# 允许 ChatGPT 实时搜索引用
+User-agent: OAI-SearchBot
+Allow: /

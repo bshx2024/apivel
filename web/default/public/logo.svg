@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%" fill="none">
+  <defs>
+    <!-- 渐变定义 -->
+    <linearGradient id="apivel-grad-cyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#6366f1" />
+    </linearGradient>
+    <linearGradient id="apivel-grad-purple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818cf8" />
+      <stop offset="100%" stop-color="#c084fc" />
+    </linearGradient>
+    <linearGradient id="apivel-grad-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e0e7ff" />
+      <stop offset="100%" stop-color="#a855f7" />
+    </linearGradient>
+    <radialGradient id="apivel-core" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="1" />
+      <stop offset="50%" stop-color="#a5f3fc" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#818cf8" stop-opacity="0" />
+    </radialGradient>
+    <filter id="apivel-filter-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.2" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <g filter="url(#apivel-filter-glow)">
+    <!-- 次芒：四角斜向星芒 -->
+    <!-- 左上次芒 -->
+    <polygon points="24,24 16,19 11,11 19,16" fill="url(#apivel-grad-cyan)" opacity="0.85" />
+    <!-- 右上次芒 -->
+    <polygon points="24,24 29,16 37,11 32,19" fill="url(#apivel-grad-purple)" opacity="0.85" />
+    <!-- 左下次芒 -->
+    <polygon points="24,24 19,32 11,37 16,29" fill="url(#apivel-grad-cyan)" opacity="0.85" />
+    <!-- 右下次芒 -->
+    <polygon points="24,24 32,29 37,37 29,32" fill="url(#apivel-grad-purple)" opacity="0.85" />
+
+    <!-- 主芒：上下左右 四芒星切面 -->
+    <!-- 上主芒：左侧明面 & 右侧暗面 -->
+    <polygon points="24,3 24,24 18,20" fill="url(#apivel-grad-cyan)" />
+    <polygon points="24,3 30,20 24,24" fill="url(#apivel-grad-purple)" opacity="0.9" />
+
+    <!-- 下主芒：左侧明面 & 右侧暗面 -->
+    <polygon points="24,45 18,28 24,24" fill="url(#apivel-grad-cyan)" opacity="0.95" />
+    <polygon points="24,45 24,24 30,28" fill="url(#apivel-grad-purple)" />
+
+    <!-- 左主芒：上侧明面 & 下侧暗面 -->
+    <polygon points="3,24 20,18 24,24" fill="url(#apivel-grad-cyan)" />
+    <polygon points="3,24 24,24 20,30" fill="url(#apivel-grad-cyan)" opacity="0.8" />
+
+    <!-- 右主芒：上侧明面 & 下侧暗面 -->
+    <polygon points="45,24 24,24 28,18" fill="url(#apivel-grad-purple)" opacity="0.9" />
+    <polygon points="45,24 28,30 24,24" fill="url(#apivel-grad-purple)" />
+
+    <!-- 棱线高光描边增强水晶质感 -->
+    <polyline points="24,3 24,45" stroke="#ffffff" stroke-width="0.75" stroke-linecap="round" opacity="0.7" />
+    <polyline points="3,24 45,24" stroke="#ffffff" stroke-width="0.75" stroke-linecap="round" opacity="0.7" />
+    <polyline points="11,11 37,37" stroke="#ffffff" stroke-width="0.5" stroke-linecap="round" opacity="0.4" />
+    <polyline points="37,11 11,37" stroke="#ffffff" stroke-width="0.5" stroke-linecap="round" opacity="0.4" />
+
+    <!-- 核心微光光晕与星核 -->
+    <circle cx="24" cy="24" r="7" fill="url(#apivel-core)" />
+    <polygon points="24,19 25.5,22.5 29,24 25.5,25.5 24,29 22.5,25.5 19,24 22.5,22.5" fill="#ffffff" />
+  </g>
+</svg>

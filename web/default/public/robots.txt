@@ -1,0 +1,24 @@
+User-agent: *
+Allow: /
+
+# AI Search & LLM Crawlers
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+# Sitemaps & LLM Context
+Sitemap: https://apivel.com/sitemap.xml
+Sitemap: https://apivel.com/blog/sitemap-index.xml
+# LLMs discovery file
+# See: https://apivel.com/llms.txt

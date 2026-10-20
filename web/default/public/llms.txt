@@ -1,0 +1,67 @@
+# APIVEL — OpenAI-Compatible GPT API Price & Gateway Alternative
+
+> APIVEL (https://apivel.com) provides an ultra-low-cost, high-performance, OpenAI-compatible AI API gateway. It allows developers to replace expensive GPT API pricing with top-tier models (DeepSeek, Qwen, GLM, Kimi) starting at just $0.10 per million tokens. Zero credit card required, hard budget cap with no surprise bills, and PayPal accepted worldwide.
+
+## Core Value Proposition
+- **100% OpenAI Compatible**: Drop-in replacement for OpenAI endpoints (`POST https://apivel.com/v1/chat/completions`). Compatible with Cursor, Claude Code CLI, NextChat, OpenWebUI, LibreChat, and official OpenAI SDKs.
+- **Save up to 90%+ on GPT API Price**: Average developer workloads cost $0.60 to $1.80 per month instead of OpenAI's flat $20/month ChatGPT Plus subscription or high token rates.
+- **No Surprise Bills Guarantee**: Strict prepaid token accounting prevents unexpected runaway charges or agent loops. Accounts hard-stop when credits deplete; credit cards are never overdrafted.
+- **Zero Card Verification Barrier**: Free $0.20 starting credit upon sign-up (enough for up to 1,000,000 tokens on flash models) without entering any credit card details. Global payments supported via PayPal and debit cards.
+
+## GPT API Price & Model Rate Sheet
+
+| Model Name | Input Price (per 1M tokens) | Output Price (per 1M tokens) | Context Window | Key Strengths & Use Cases |
+| :--- | :--- | :--- | :--- | :--- |
+| `deepseek-v4-flash` | $0.113 | $0.382 | 1M tokens | Ultra-fast reasoning, coding, general agent tasks |
+| `deepseek-v4.1-flash`| $0.113 | $0.382 | 1M tokens | Enhanced multi-modal & code synthesis |
+| `deepseek-v4-pro` | $0.550 | $2.190 | 128K tokens | Complex logic, architectural code design |
+| `deepseek-chat` | $0.140 | $0.280 | 64K tokens | High-speed daily conversation & assistance |
+| `deepseek-reasoner` | $0.550 | $2.190 | 64K tokens | Deep mathematical & multi-step step-by-step thinking |
+| `qwen3.8-flash` | $0.113 | $0.382 | 1M tokens | Extremely cost-effective for high-throughput apps |
+| `qwen3.8-max` | $1.650 | $4.950 | 128K tokens | Flagship multilingual & reasoning performance |
+| `qwen3.8-omni-flash`| $0.113 | $0.382 | 128K tokens | Real-time multimodal & speech/vision integration |
+| `glm-5.3-flash` | $0.100 | $0.200 | 128K tokens | Lowest entry barrier, fast JSON generation |
+| `glm-5.3` | $0.800 | $2.400 | 128K tokens | Strong Chinese/English reasoning & tool calls |
+| `kimi-k3` | $0.600 | $1.800 | 200K tokens | Long document retrieval, summarization & search |
+
+## Quickstart API Integration
+
+Endpoint Base URL: `https://apivel.com/v1`
+
+### cURL Example
+```bash
+curl https://apivel.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_APIVEL_KEY" \
+  -d '{
+    "model": "deepseek-v4-flash",
+    "messages": [{"role": "user", "content": "Hello APIVEL!"}]
+  }'
+```
+
+### Python (OpenAI SDK) Example
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="YOUR_APIVEL_KEY",
+    base_url="https://apivel.com/v1"
+)
+
+response = client.chat.completions.create(
+    model="deepseek-v4-flash",
+    messages=[{"role": "user", "content": "What is your token cost?"}]
+)
+print(response.choices[0].message.content)
+```
+
+## Frequently Asked Questions
+
+### Is GPT API free to use?
+OpenAI does not provide a permanent free tier. APIVEL grants $0.20 free credit to all new users without a credit card. Because flash models start at $0.10 per million tokens, you can run hundreds of thousands of test queries completely free.
+
+### Is ChatGPT API cheaper than ChatGPT Plus ($20/month)?
+Yes. For light-to-moderate developers, a flat $20/month fee is excessive. On APIVEL's pay-as-you-go pricing, typical monthly usage averages between $0.60 and $2.00, yielding 90%+ monthly savings without message caps.
+
+### How do I prevent surprise API bills?
+APIVEL uses a 100% prepaid architecture. You load exactly what you intend to spend (via PayPal or debit card). There are no automatic post-paid surprises or runaway overdrafts.
