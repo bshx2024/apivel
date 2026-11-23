@@ -565,6 +565,16 @@ func AdminCompleteTopUp(c *gin.Context) {
 		}
 	}
 
+	// 如果是 Stripe 订单且处于待支付状态，优先尝试主动向 Stripe 核验是否已真实支付
+	if topUp != nil && topUp.PaymentProvider == model.PaymentProviderStripe && topUp.Status == common.TopUpStatusPending {
+		if ok, stripeErr := SyncAndVerifyStripeOrder(c.Request.Context(), req.TradeNo, c.ClientIP()); ok && stripeErr == nil {
+			common.ApiSuccess(c, nil)
+			return
+		} else if stripeErr != nil {
+			logger.LogWarn(c.Request.Context(), fmt.Sprintf("管理员补单尝试 Stripe 主动对账失败 (继续尝试本地补单): %s", stripeErr.Error()))
+		}
+	}
+
 	if err := model.ManualCompleteTopUp(req.TradeNo, c.ClientIP()); err != nil {
 		common.ApiError(c, err)
 		return

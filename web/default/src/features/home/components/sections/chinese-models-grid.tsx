@@ -56,12 +56,12 @@ const CHINESE_AI_VENDORS: ModelVendorCard[] = [
     badgeColor: 'border-blue-500/30 bg-blue-500/10 text-blue-400',
     description:
       'State-of-the-art open-weights reasoning & coding models with ultra-low token latency and massive context capabilities.',
-    flagshipModels: ['deepseek-v4-pro', 'deepseek-v4.1-flash', 'deepseek-r1'],
-    tags: ['Reasoning', 'Math & Code', 'Open Weight', 'High Reliability'],
+    flagshipModels: ['deepseek-v4-flash', 'deepseek-v4-pro', 'deepseek-chat', 'deepseek-reasoner'],
+    tags: ['DeepSeek V4', 'DeepSeek-Chat', 'OpenAI Compatible', '99.9% Failover'],
     specs: {
-      context: '128K - 1M',
+      context: '64K - 1M',
       speed: '~80 tok/s',
-      pricing: 'From $0.14 / 1M',
+      pricing: 'From $0.113 / 1M',
     },
   },
   {
@@ -72,12 +72,12 @@ const CHINESE_AI_VENDORS: ModelVendorCard[] = [
     badgeColor: 'border-amber-500/30 bg-amber-500/10 text-amber-400',
     description:
       'Comprehensive suite of LLMs, coding experts, and vision-language multimodal models engineered for global performance.',
-    flagshipModels: ['qwen3.8-max', 'qwen3.7-max', 'qwen-2.5-coder'],
+    flagshipModels: ['qwen3.8-flash', 'qwen3.8-max', 'qwen3.8-omni-flash'],
     tags: ['Coding Leader', 'Vision & Audio', 'Tool Calling', 'Fast Response'],
     specs: {
       context: '128K - 1M',
       speed: '~95 tok/s',
-      pricing: 'From $0.20 / 1M',
+      pricing: 'From $0.113 / 1M',
     },
   },
   {

@@ -42,6 +42,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { track } from '@/lib/tracker'
+import { sendKeyToEmail } from '@/lib/copy-to-clipboard'
 import {
   Dialog,
   DialogContent,
@@ -84,22 +85,9 @@ export function QuickstartDialog({ open, onOpenChange }: QuickstartDialogProps) 
   const user = useAuthStore((state) => state.auth.user)
   const userEmail = user?.email || ''
 
-  const [currentStep, setCurrentStep] = useState<'survey' | 'offer' | 'credentials'>(() => {
-    if (typeof window !== 'undefined') {
-      const surveyDone = localStorage.getItem('apivel_onboarding_survey_done') === 'true'
-      return surveyDone ? 'credentials' : 'survey'
-    }
-    return 'credentials'
-  })
+  // Default directly to credentials so new users immediately get their API key and 1-click test sandbox
+  const [currentStep, setCurrentStep] = useState<'survey' | 'offer' | 'credentials'>('credentials')
 
-  useEffect(() => {
-    if (open && typeof window !== 'undefined') {
-      const surveyDone = localStorage.getItem('apivel_onboarding_survey_done') === 'true'
-      if (!surveyDone) {
-        setCurrentStep('survey')
-      }
-    }
-  }, [open])
 
   const [apiKey, setApiKey] = useState<string>('')
   const [loadingKey, setLoadingKey] = useState<boolean>(true)
@@ -133,17 +121,27 @@ export function QuickstartDialog({ open, onOpenChange }: QuickstartDialogProps) 
   const [customPrompt, setCustomPrompt] = useState<string>('')
   const [testResult, setTestResult] = useState<{ prompt: string; text: string; latency: number } | null>(null)
 
-  // Align active model/tab if context changes or on modal open
+  // Align active model/tab if context changes or on modal open, and restore demo prompt if available
   useEffect(() => {
-    if (open && sourceContext.matched) {
-      if (sourceContext.recommendedModel) {
-        setSelectedTestModel(sourceContext.recommendedModel)
+    if (open) {
+      if (typeof window !== 'undefined') {
+        try {
+          const savedPrompt = sessionStorage.getItem('apivel_last_demo_prompt')
+          if (savedPrompt && !customPrompt) {
+            setCustomPrompt(savedPrompt)
+          }
+        } catch (_e) {}
       }
-      if (sourceContext.preferredTab) {
-        setActiveTab(sourceContext.preferredTab)
+      if (sourceContext.matched) {
+        if (sourceContext.recommendedModel) {
+          setSelectedTestModel(sourceContext.recommendedModel)
+        }
+        if (sourceContext.preferredTab) {
+          setActiveTab(sourceContext.preferredTab)
+        }
       }
     }
-  }, [open, sourceContext])
+  }, [open, sourceContext, customPrompt])
 
   const baseUrl = typeof window !== 'undefined' 
     ? `${window.location.protocol}//${window.location.host}/v1` 
@@ -336,6 +334,17 @@ export function QuickstartDialog({ open, onOpenChange }: QuickstartDialogProps) 
       })
       setTestStatus('success')
       track('quickstart_speed_test_success', { model: selectedTestModel, latency: latencyMs })
+      try {
+        const existing = JSON.parse(localStorage.getItem('apivel_user_persona') || '{}')
+        localStorage.setItem('apivel_user_persona', JSON.stringify({
+          ...existing,
+          tested_model: selectedTestModel,
+          test_latency_ms: latencyMs,
+          updated_at: new Date().toISOString()
+        }))
+      } catch {
+        /* ignore */
+      }
       toast.success(t(`First token in ${latencyMs}ms!`))
     } catch (err: any) {
       if (err?.message?.includes('401') || err?.message?.includes('403')) {
@@ -377,9 +386,12 @@ ${displayKey}
 ${baseUrl}
 
 # Step 3: Add Custom Models (Click "+ Add model"):
+# 💡 Recommended for High-Speed Coding & Autocomplete (1/20th OpenAI cost):
 deepseek-v4-flash
+# 💡 Frontier Flagship Reasoning:
 qwen3.8-max
-glm-5.3`,
+glm-5.3
+kimi-k3`,
 
     claude: `# === macOS / Linux / WSL / Git Bash ===
 export ANTHROPIC_BASE_URL="${baseUrl}"
@@ -398,6 +410,10 @@ client = OpenAI(
     base_url="${baseUrl}"
 )
 
+# 💡 Recommended frontier models (Wholesale ultra-low rates):
+# - "deepseek-v4-flash" (Fastest coding completions, ~1/20th OpenAI cost)
+# - "qwen3.8-max" (Alibaba flagship intelligence)
+# - "glm-5.3" (Zhipu agentic reasoning)
 response = client.chat.completions.create(
     model="deepseek-v4-flash",
     messages=[
@@ -437,12 +453,29 @@ main();`,
     navigator.clipboard.writeText(apiKey)
     setCopiedKey(true)
     track('copy_api_key', { from: 'quickstart_modal' })
-    toast.success(t('API Key copied to clipboard!'), {
-      action: {
-        label: t('Test in Playground →'),
-        onClick: handleGoToPlayground,
-      },
-    })
+    if (isMobile) {
+      toast.success(
+        t('API Key 已复制！可在移动端 Playground 测试，或一键发至邮箱电脑使用', 'API Key 已复制！可在移动端 Playground 测试，或一键发至邮箱电脑使用'),
+        {
+          action: {
+            label: t('发到我的邮箱 →', '发到我的邮箱 →'),
+            onClick: () => sendKeyToEmail(apiKey, userEmail),
+          },
+          duration: 6000,
+        }
+      )
+    } else {
+      toast.success(
+        t('API Key copied! Recommended model: deepseek-v4-flash or qwen3.8-max (OpenAI compatible)', 'API Key 已复制！推荐模型：deepseek-v4-flash 或 qwen3.8-max（完全兼容 OpenAI 协议）'),
+        {
+          action: {
+            label: t('⚡ Run 3s Test →', '⚡ 3秒免配置即测 →'),
+            onClick: () => handleRunSpeedTest(),
+          },
+          duration: 5000,
+        }
+      )
+    }
     setTimeout(() => setCopiedKey(false), 2000)
   }
 
@@ -451,6 +484,17 @@ main();`,
     navigator.clipboard.writeText(currentCode)
     setCopiedCode(true)
     track('copy_code_snippet', { tab: activeTab })
+    try {
+      const existing = JSON.parse(localStorage.getItem('apivel_user_persona') || '{}')
+      localStorage.setItem('apivel_user_persona', JSON.stringify({
+        ...existing,
+        preferred_tab: activeTab,
+        preferred_model: selectedTestModel,
+        updated_at: new Date().toISOString()
+      }))
+    } catch {
+      /* ignore */
+    }
     toast.success(t('Snippet copied to clipboard!'), {
       action: {
         label: t('Test in Playground →'),
@@ -533,7 +577,7 @@ main();`,
 
   const contentWidth =
     currentStep === 'offer'
-      ? 'sm:max-w-3xl md:max-w-4xl'
+      ? 'sm:max-w-4xl md:max-w-5xl lg:max-w-6xl'
       : 'sm:max-w-2xl md:max-w-2xl'
 
   return (
@@ -612,8 +656,60 @@ main();`,
               </div>
             </div>
 
+            {/* Mobile Handoff Card for Mobile Browsers */}
+            {isMobile && (
+              <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 flex flex-col gap-2.5 shadow-2xs">
+                <div className="flex items-center gap-2">
+                  <Smartphone className="size-4 text-blue-500 shrink-0" />
+                  <span className="text-xs font-bold text-foreground">
+                    {t('quickstart_mobile_handoff_title', 'Browsing on phone? Send setup to email for 1-click desktop testing.')}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    onClick={handleSendEmailToSelf}
+                    disabled={loadingKey || !apiKey}
+                    className="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold gap-1.5 h-8.5 shadow-xs cursor-pointer"
+                  >
+                    <Mail className="size-3.5" />
+                    {t('quickstart_mobile_email_btn', 'Email Config to Desktop')}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleCopyKey}
+                    disabled={loadingKey || !apiKey}
+                    className="text-xs font-medium gap-1.5 h-8.5 border-border/80 cursor-pointer"
+                  >
+                    {copiedKey ? <Check className="size-3.5 text-green-500" /> : <Copy className="size-3.5" />}
+                    {copiedKey ? t('Copied') : t('Copy Key')}
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Quick Action Buttons */}
             <div className="flex flex-wrap items-center gap-2 pt-1">
+              <Button
+                size="sm"
+                onClick={() => handleRunSpeedTest()}
+                disabled={loadingKey || !apiKey || testStatus === 'testing'}
+                className="h-8.5 px-4 text-xs font-bold gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm cursor-pointer disabled:opacity-50"
+              >
+                {testStatus === 'testing' ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    {t('Testing Connection...')}
+                  </>
+                ) : (
+                  <>
+                    <Zap className="h-3.5 w-3.5 fill-current" />
+                    {t('⚡ Instant Test (3 Seconds)')}
+                  </>
+                )}
+              </Button>
+
               <Button
                 size="sm"
                 onClick={handleGoToPlayground}
@@ -865,6 +961,43 @@ main();`,
                     </Button>
                   </div>
                 </div>
+
+                {/* Post-Test High-Conversion Nudge: Immediate Cursor Setup or +50% Bonus */}
+                <div className="mt-2 pt-2 border-t border-border/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-gradient-to-r from-amber-500/10 via-primary/5 to-transparent p-2.5 rounded-lg border border-amber-500/30">
+                  <div className="flex items-center gap-2">
+                    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs">
+                      ⚡
+                    </span>
+                    <span className="text-xs text-foreground font-semibold">
+                      {t('Ready to code with this speed in your editor?')}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      type="button"
+                      onClick={() => {
+                        setActiveTab('cursor')
+                        navigator.clipboard.writeText(codeSnippets.cursor)
+                        toast.success(t('Cursor configuration copied! Paste in Cursor Settings -> Models.'))
+                      }}
+                      className="h-7 text-xs font-semibold gap-1 border-primary/40 text-primary bg-primary/5 hover:bg-primary/10 cursor-pointer shadow-xs"
+                    >
+                      <Cpu className="h-3 w-3" />
+                      {t('Copy Cursor Setup')}
+                    </Button>
+                    <Button
+                      size="sm"
+                      type="button"
+                      onClick={() => setCurrentStep('offer')}
+                      className="h-7 text-xs font-semibold gap-1 bg-amber-500 hover:bg-amber-600 text-white cursor-pointer shadow-xs"
+                    >
+                      <Zap className="h-3 w-3 fill-current" />
+                      {t('Claim +50% Bonus ($1.99 → $3.00) →')}
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -1009,6 +1142,38 @@ main();`,
                 </TabsContent>
               ))}
             </Tabs>
+          </div>
+
+          {/* Optional Developer Survey & Higher Concurrency Incentive */}
+          <div className="rounded-xl border border-border/70 bg-muted/30 p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 text-xs">
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-semibold shrink-0">
+                🎁 {t('Developer Incentive')}
+              </Badge>
+              <span className="text-muted-foreground leading-normal">
+                {t('Need custom models, higher concurrency or custom plans?')}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setCurrentStep('survey')}
+                className="h-7 text-xs font-medium text-primary hover:text-primary/90 underline-offset-4 hover:underline p-0 cursor-pointer"
+              >
+                {t('Tell us your stack (30s) →')}
+              </Button>
+              <span className="text-muted-foreground/40">|</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentStep('offer')}
+                className="h-7 text-xs font-semibold gap-1 border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 cursor-pointer"
+              >
+                <Zap className="h-3 w-3" />
+                {t('First Deposit +50% Bonus')}
+              </Button>
+            </div>
           </div>
         </div>
 

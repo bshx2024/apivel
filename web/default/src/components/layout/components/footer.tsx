@@ -215,7 +215,10 @@ export function Footer(props: FooterProps) {
             <p className='text-muted-foreground/45 text-xs'>
               &copy; {currentYear} {displayName}. Service provided by Astrapix LLC
             </p>
-
+            <div className='flex items-center justify-center gap-1.5 text-xs text-muted-foreground/50 sm:justify-start'>
+              <span className='size-1.5 rounded-full bg-emerald-500 animate-pulse' />
+              <span>All Systems Operational (99.9% SLA)</span>
+            </div>
           </div>
 
           {/* Payment Icons */}

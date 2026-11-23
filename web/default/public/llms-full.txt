@@ -1,0 +1,90 @@
+# APIVEL Full Technical Specification & LLM Reference (llms-full.txt)
+
+> APIVEL (https://apivel.com) is an enterprise-grade OpenAI-compatible API gateway purpose-built for frontier Chinese Artificial Intelligence models including DeepSeek, Alibaba Qwen, Zhipu GLM, and Moonshot Kimi. It provides global software engineers and autonomous agents with low-latency access, zero mainland Chinese KYC requirements, multi-channel failover redundancy against 503 "Service Too Busy" outages, and global PayPal billing.
+
+## 1. System Architecture & Gateway Endpoint
+
+- **Standard Base URL**: `https://api.apivel.com/v1`
+- **Protocol**: HTTPS / REST / Server-Sent Events (SSE) streaming
+- **Compatibility**: 100% drop-in replacement for OpenAI SDKs, LangChain, LlamaIndex, Cursor, Claude Code, Cline, NextChat, OpenWebUI, and LibreChat.
+- **Authentication**: Bearer token via `Authorization: Bearer <APIVEL_API_KEY>` header.
+- **Failover Mechanism**: Automatic multi-node routing. When an upstream provider returns 503 (Overload / Service Too Busy) or rate limit (429), APIVEL automatically re-routes the request to an active standby channel in < 15ms.
+
+## 2. Supported Production Models & Real-Time Pricing (USD per 1M Tokens)
+
+| Model Identifier | Input / 1M Tokens | Output / 1M Tokens | Context Length | Max Output Tokens | Optimal Workloads |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `deepseek-v4-flash` | $0.113 | $0.382 | 1,000,000 | 8,192 | Ultra-high throughput, IDE agents, streaming code generation |
+| `deepseek-v4.1-flash`| $0.113 | $0.382 | 1,000,000 | 8,192 | Vision-augmented coding, multimodal analysis, fast summarization |
+| `deepseek-v4-pro` | $0.550 | $2.190 | 128,000 | 8,192 | System architecture, complex algorithmic proofs, high-depth reasoning |
+| `deepseek-chat` | $0.140 | $0.280 | 64,000 | 8,192 | General conversational AI, customer support, tool invocation |
+| `deepseek-reasoner` | $0.550 | $2.190 | 64,000 | 8,192 | Step-by-step chain-of-thought, math proofs, competitive coding |
+| `qwen3.8-flash` | $0.113 | $0.382 | 1,000,000 | 8,192 | High-concurrency enterprise pipelines, multilingual agent workflows |
+| `qwen3.8-max` | $1.650 | $4.950 | 128,000 | 8,192 | Flagship enterprise reasoning, complex multilingual translation |
+| `qwen3.8-omni-flash`| $0.113 | $0.382 | 128,000 | 8,192 | Low-latency audio/vision multimodal streaming pipelines |
+| `glm-5.3-flash` | $0.100 | $0.200 | 128,000 | 4,096 | Cost-effective JSON structured output extraction, log triage |
+| `glm-5.3` | $0.800 | $2.400 | 128,000 | 8,192 | Complex agent tool use, Chinese-English bilingual instruction |
+| `kimi-k3` | $0.600 | $1.800 | 200,000 | 8,192 | Long-context book/financial report retrieval and synthesis |
+
+## 3. Comparison Matrix: APIVEL vs Official Direct Accounts vs OpenRouter
+
+| Evaluation Criteria | Official Direct Accounts (DeepSeek/Qwen) | OpenRouter | APIVEL Gateway |
+| :--- | :--- | :--- | :--- |
+| **Phone / Identity KYC** | Mandatory Chinese (+86) phone & ID card | None | **Zero KYC (Global Email Only)** |
+| **Payment Options** | Domestic Chinese bank cards, Alipay, WeChat | Credit cards (Stripe) | **Global PayPal & Credit/Debit Cards** |
+| **503 Overload Defense** | High failure rate during peak hours | Variable provider routing | **Multi-channel Hot Standby Automatic Failover** |
+| **Flash Tier Rates** | Standard domestic baseline | Markup on select models | **Direct competitive rates from $0.10/M tokens** |
+| **Surprise Overdrafts** | Post-paid invoice risks | Credit balance | **100% Strict Prepaid Protection** |
+
+## 4. Integration Examples
+
+### 4.1 Python (OpenAI Official SDK)
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="YOUR_APIVEL_API_KEY",
+    base_url="https://api.apivel.com/v1"
+)
+
+response = client.chat.completions.create(
+    model="deepseek-v4-flash",
+    messages=[
+        {"role": "system", "content": "You are an expert software engineer."},
+        {"role": "user", "content": "Write a high-performance LRU Cache in Go."}
+    ],
+    temperature=0.3,
+    stream=True
+)
+
+for chunk in response:
+    content = chunk.choices[0].delta.content or ""
+    print(content, end="", flush=True)
+```
+
+### 4.2 cURL (REST API)
+```bash
+curl -X POST https://api.apivel.com/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_APIVEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-v4-flash",
+    "messages": [{"role": "user", "content": "Hello!"}],
+    "stream": false
+  }'
+```
+
+### 4.3 Cursor & VS Code Configuration
+- **Model Name**: `deepseek-v4-flash` or `deepseek-chat`
+- **Override OpenAI Base URL**: `https://api.apivel.com/v1`
+- **API Key**: Enter your APIVEL key generated from the dashboard.
+
+## 5. Billing, Quota & Accounting Architecture
+- 1 USD = 500,000 Quota units.
+- Pre-consumed quota reserves a safe buffer per request, settles with exact token counts returned from model providers, and immediately refunds unused pre-consumed quota.
+- Accounts halt cleanly when prepaid balance reaches zero; no negative balances or unexpected credit card debits are permitted.
+
+## 6. Support & Operational Entity
+- **Operating Entity**: Astrapix LLC
+- **Support Contact**: support@apivel.com
+- **Terms & Policies**: https://apivel.com/terms, https://apivel.com/privacy, https://apivel.com/refund

@@ -152,6 +152,29 @@ export function Wallet(props: WalletProps) {
     track('view_topup')
   }, [fetchUser])
 
+  // Listen for tab focus return after checkout attempt to rescue abandoned checkouts
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        const lastInitiated = sessionStorage.getItem('apivel_pending_payment_initiated')
+        if (lastInitiated) {
+          const elapsed = Date.now() - parseInt(lastInitiated, 10)
+          // If returned within 15 minutes, recheck user status
+          if (elapsed < 15 * 60 * 1000) {
+            fetchUser().then(() => {
+              const currentUser = useAuthStore.getState().auth.user
+              if (currentUser && currentUser.request_count === 0 && currentUser.quota > 0) {
+                setRecoveryBannerVisible(true)
+              }
+            })
+          }
+        }
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
+  }, [fetchUser])
+
   useEffect(() => {
     if (props.initialShowHistory) {
       setBillingDialogOpen(true)
@@ -233,6 +256,11 @@ export function Wallet(props: WalletProps) {
         method_name: method.name,
         amount: topupAmount,
       })
+      try {
+        sessionStorage.setItem('apivel_pending_payment_initiated', Date.now().toString())
+      } catch {
+        /* empty */
+      }
 
       try {
         // Validate minimum topup
@@ -519,35 +547,50 @@ glm-5.3-flash`
                 {recoveryBannerVisible && (
                   <div className='flex flex-wrap items-center justify-between gap-3 rounded-xl border border-blue-500/35 bg-blue-500/10 p-3.5 text-xs text-foreground shadow-xs backdrop-blur-sm animate-in fade-in slide-in-from-top-2 duration-300'>
                     <div className='flex items-center gap-2.5'>
-                      <span className='text-base shrink-0'>🛡️</span>
+                      <span className='text-base shrink-0'>
+                        {(user?.request_count ?? 0) === 0 && (user?.quota ?? 0) > 0 ? '🎁' : '🛡️'}
+                      </span>
                       <div>
                         <span className='font-bold text-blue-600 dark:text-blue-400'>
-                          Payment not completed?
+                          {t('Payment not completed?')}
                         </span>
                         <span className='text-muted-foreground ml-1.5 hidden sm:inline'>
-                          {isPayPalAvailable
-                            ? 'Your bank may have declined the international transaction (no funds were charged). Switch to PayPal for smooth, instant approval.'
-                            : 'Your bank may have declined the international transaction (no funds were charged). View alternative payment tips.'}
+                          {(user?.request_count ?? 0) === 0 && (user?.quota ?? 0) > 0
+                            ? t('No worries! You already have $0.20 free trial credits. Test in Playground or Cursor without payment.')
+                            : isPayPalAvailable
+                              ? t('Your bank may have declined the international transaction (no funds were charged). Switch to PayPal for smooth, instant approval.')
+                              : t('Your bank may have declined the international transaction (no funds were charged). View alternative payment tips.')}
                         </span>
                       </div>
                     </div>
                     <div className='flex items-center gap-2 shrink-0'>
-                      <Button
-                        size='sm'
-                        onClick={handleSwitchToPayPal}
-                        className='h-8 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs gap-1.5 shadow-xs'
-                      >
-                        {isPayPalAvailable ? (
-                          <>
-                            <SiPaypal className='h-3.5 w-3.5' />
-                            Pay with PayPal →
-                          </>
-                        ) : (
-                          <>
-                            View Solutions →
-                          </>
-                        )}
-                      </Button>
+                      {(user?.request_count ?? 0) === 0 && (user?.quota ?? 0) > 0 ? (
+                        <Button
+                          size='sm'
+                          onClick={() => navigate({ to: '/playground', search: { model: 'deepseek-v4-flash' } })}
+                          className='h-8 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-1.5 shadow-xs cursor-pointer'
+                        >
+                          <span>💬</span>
+                          <span>{t('Test in Playground →')}</span>
+                        </Button>
+                      ) : isPayPalAvailable ? (
+                        <Button
+                          size='sm'
+                          onClick={handleSwitchToPayPal}
+                          className='h-8 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs gap-1.5 shadow-xs'
+                        >
+                          <SiPaypal className='h-3.5 w-3.5' />
+                          {t('Pay with PayPal →')}
+                        </Button>
+                      ) : (
+                        <Button
+                          size='sm'
+                          onClick={() => setRecoveryDialogOpen(true)}
+                          className='h-8 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs gap-1.5 shadow-xs'
+                        >
+                          {t('View Solutions →')}
+                        </Button>
+                      )}
                       <Button
                         size='sm'
                         variant='ghost'

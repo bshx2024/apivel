@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from '@tanstack/react-router'
 import { ArrowRight, Terminal, Sparkles, Calculator as CalcIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -33,6 +33,19 @@ interface HeroProps {
 export function Hero(props: HeroProps) {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<'playground' | 'calculator' | 'terminal'>('playground')
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('try') === 'playground' || window.location.hash === '#playground') {
+        setActiveTab('playground')
+        const el = document.getElementById('playground')
+        if (el) {
+          setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 150)
+        }
+      }
+    }
+  }, [])
 
   return (
     <section className='relative z-10 flex flex-col items-center overflow-hidden px-4 pt-20 pb-10 md:pt-24 md:pb-14'>
@@ -64,7 +77,7 @@ export function Hero(props: HeroProps) {
             className='group inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 backdrop-blur-md hover:bg-blue-500/20 hover:border-blue-500/50 transition-all shadow-sm'
           >
             <span className='size-2 rounded-full bg-emerald-500 animate-pulse' />
-            <span>{t('⚡ Zero Card Required: Sign up in 5s & get $0.20 free credit — test GPT API price & models without surprise bills →')}</span>
+            <span>{t('⚡ Zero 503 Overloads • No Mainland Phone (+86) Required • Instant PayPal Access →')}</span>
           </Link>
         </div>
 
@@ -72,23 +85,23 @@ export function Hero(props: HeroProps) {
           className='landing-animate-fade-up text-[clamp(1.85rem,5vw,3.25rem)] leading-[1.15] font-bold tracking-tight'
           style={{ animationDelay: '40ms' }}
         >
-          {t('The Smarter GPT API Price')}
+          {t('DeepSeek API Pricing')}
           <br />
           <span className='bg-gradient-to-r from-blue-400 via-violet-400 to-purple-500 bg-clip-text text-transparent'>
-            {t('& Performance Alternative')}
+            {t('& OpenAI Gateway for Chinese Models')}
           </span>
         </h1>
         <p
           className='landing-animate-fade-up text-muted-foreground/80 mt-3 max-w-2xl text-xs leading-relaxed opacity-0 sm:text-sm md:text-base'
           style={{ animationDelay: '100ms' }}
         >
-          {t('100% OpenAI-compatible GPT API pricing from $0.10 / 1M tokens. Compare token costs, run live price calculations, and save up to 90% without surprise bills.')}
+          {t('100% OpenAI-compatible endpoint from $0.10 / 1M tokens. Connect DeepSeek, Qwen & GLM instantly to Cursor, NextChat, and official OpenAI SDKs.')}
         </p>
         <p
           className='landing-animate-fade-up text-muted-foreground/60 mt-1.5 max-w-xl text-[11px] leading-relaxed opacity-0 hidden sm:block'
           style={{ animationDelay: '130ms' }}
         >
-          {t('Connect DeepSeek, Qwen & GLM instantly to Cursor, Claude Code CLI, NextChat, and official OpenAI SDKs with transparent pay-as-you-go pricing.')}
+          {t('Prepaid pay-as-you-go billing with zero 503 overload errors, no KYC phone verification, and instant global PayPal checkout.')}
         </p>
 
         <div
@@ -119,7 +132,7 @@ export function Hero(props: HeroProps) {
                   className='border-border/50 hover:border-border hover:bg-muted/50 rounded-lg'
                   render={<Link to='/pricing' />}
                 >
-                  {t('GPT API Price List')}
+                  {t('View Token Pricing')}
                 </Button>
               </>
             )}
@@ -164,7 +177,7 @@ export function Hero(props: HeroProps) {
               }`}
             >
               <CalcIcon className='size-3.5 text-emerald-400' />
-              {t('📊 GPT API Price Calculator')}
+              {t('📊 DeepSeek API Pricing Calculator')}
             </button>
 
             <button
@@ -183,7 +196,7 @@ export function Hero(props: HeroProps) {
         </div>
 
         {/* Tab Panel Render */}
-        <div className='w-full'>
+        <div id='playground' className='w-full scroll-mt-24'>
           {activeTab === 'playground' && <LivePlayground />}
           {activeTab === 'calculator' && <Calculator />}
           {activeTab === 'terminal' && <HeroTerminalDemo />}

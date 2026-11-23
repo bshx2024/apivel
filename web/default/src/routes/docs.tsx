@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import {
@@ -29,12 +29,149 @@ import {
   ArrowRight,
   Zap,
   CheckCircle2,
+  Cpu,
+  Layers,
 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import { PublicLayout } from '@/components/layout'
 import { PageTransition } from '@/components/page-transition'
 import { CopyButton } from '@/components/copy-button'
 import { useStatus } from '@/hooks/use-status'
 import { useAuthStore } from '@/stores/auth-store'
+
+interface SupportedModelItem {
+  id: string
+  name: string
+  series: 'DeepSeek' | 'Qwen' | 'GLM' | 'Kimi' | 'MiniMax' | 'Doubao'
+  description: string
+  tag: string
+  badgeTone?: 'emerald' | 'blue' | 'purple' | 'amber'
+}
+
+const SUPPORTED_MODELS: SupportedModelItem[] = [
+  // DeepSeek Series
+  {
+    id: 'deepseek-v4-flash',
+    name: 'DeepSeek V4 Flash',
+    series: 'DeepSeek',
+    description: 'Ultra-low latency coding & chat model with blazing token throughput',
+    tag: 'Flagship Speed',
+    badgeTone: 'emerald',
+  },
+  {
+    id: 'deepseek-v4.1-flash',
+    name: 'DeepSeek V4.1 Flash',
+    series: 'DeepSeek',
+    description: 'Upgraded context handling with enhanced logical coherence & speed',
+    tag: 'Latest Upgrade',
+    badgeTone: 'emerald',
+  },
+  {
+    id: 'deepseek-v4-pro',
+    name: 'DeepSeek V4 Pro',
+    series: 'DeepSeek',
+    description: 'Frontier reasoning performance for complex software architecture & refactoring',
+    tag: 'Pro Intelligence',
+    badgeTone: 'blue',
+  },
+  {
+    id: 'deepseek-chat',
+    name: 'DeepSeek Chat (V3)',
+    series: 'DeepSeek',
+    description: 'Standard conversational endpoint for versatile open-domain assistant tasks',
+    tag: 'General Assistant',
+  },
+  {
+    id: 'deepseek-reasoner',
+    name: 'DeepSeek Reasoner (R1)',
+    series: 'DeepSeek',
+    description: 'Deep chain-of-thought (CoT) reasoning for mathematics, algorithms & logic',
+    tag: 'Chain of Thought',
+    badgeTone: 'purple',
+  },
+  // Qwen Series
+  {
+    id: 'qwen3.8-flash',
+    name: 'Qwen 3.8 Flash',
+    series: 'Qwen',
+    description: 'Alibaba lightning-fast cost-efficient model for high-throughput processing',
+    tag: 'High Throughput',
+    badgeTone: 'emerald',
+  },
+  {
+    id: 'qwen3.8-max',
+    name: 'Qwen 3.8 Max',
+    series: 'Qwen',
+    description: 'Alibaba flagship frontier intelligence with deep multilingual comprehension',
+    tag: 'Flagship Reasoning',
+    badgeTone: 'blue',
+  },
+  {
+    id: 'qwen3.8-omni-flash',
+    name: 'Qwen 3.8 Omni Flash',
+    series: 'Qwen',
+    description: 'Low-latency multimodal model supporting text, image, and audio inputs',
+    tag: 'Multimodal',
+  },
+  // GLM Series
+  {
+    id: 'glm-5.3-flash',
+    name: 'GLM 5.3 Flash',
+    series: 'GLM',
+    description: 'Zhipu AI ultra-responsive flash model with near-instant token generation',
+    tag: 'Instant TTFT',
+    badgeTone: 'emerald',
+  },
+  {
+    id: 'glm-5.3',
+    name: 'GLM 5.3',
+    series: 'GLM',
+    description: 'Frontier agentic model excels at complex tool calling & workflows',
+    tag: 'Agentic Workflows',
+    badgeTone: 'blue',
+  },
+  {
+    id: 'glm-5.3-flashx',
+    name: 'GLM 5.3 FlashX',
+    series: 'GLM',
+    description: 'Accelerated high-concurrency architecture for batch enterprise queries',
+    tag: 'Enterprise Scale',
+  },
+  // Kimi Series
+  {
+    id: 'kimi-k3',
+    name: 'Kimi k3',
+    series: 'Kimi',
+    description: 'Moonshot ultra-long context engine for massive document extraction & codebases',
+    tag: 'Long Context',
+    badgeTone: 'purple',
+  },
+  // MiniMax Series
+  {
+    id: 'MiniMax-M3.1-Flash',
+    name: 'MiniMax M3.1 Flash',
+    series: 'MiniMax',
+    description: 'Cost-effective high-speed model with robust instruction following',
+    tag: 'Cost Saver',
+    badgeTone: 'amber',
+  },
+  // Doubao Video
+  {
+    id: 'Doubao-Seedance-2.0-mini',
+    name: 'Doubao Seedance 2.0 Mini',
+    series: 'Doubao',
+    description: 'ByteDance next-gen video synthesis & temporal motion generation model',
+    tag: 'Video AI',
+  },
+  {
+    id: 'Doubao-Seedance-2.5',
+    name: 'Doubao Seedance 2.5',
+    series: 'Doubao',
+    description: 'High-definition cinematic video generation with consistent temporal physics',
+    tag: 'Cinematic Video',
+    badgeTone: 'purple',
+  },
+]
 
 function extractServerAddress(status: unknown): string {
   const s = status as Record<string, unknown> | null
@@ -72,6 +209,13 @@ function DocsPage() {
     return `${serverAddress}/v1`
   }, [serverAddress])
 
+  const [selectedSeries, setSelectedSeries] = useState<string>('All')
+
+  const filteredModels = useMemo(() => {
+    if (selectedSeries === 'All') return SUPPORTED_MODELS
+    return SUPPORTED_MODELS.filter((m) => m.series === selectedSeries)
+  }, [selectedSeries])
+
   return (
     <PublicLayout>
       <PageTransition className='mx-auto max-w-5xl py-12 px-4'>
@@ -97,6 +241,11 @@ function DocsPage() {
                 <li>
                   <a href='#authentication' className='block hover:text-foreground transition-colors py-1'>
                     {t('Authentication')}
+                  </a>
+                </li>
+                <li>
+                  <a href='#supported-models' className='block hover:text-foreground transition-colors py-1'>
+                    {t('Supported Models')}
                   </a>
                 </li>
                 <li>
@@ -265,6 +414,99 @@ function DocsPage() {
               </div>
             </section>
 
+            {/* Supported Models */}
+            <section id='supported-models' className='space-y-4 scroll-mt-24'>
+              <div className='flex items-center justify-between flex-wrap gap-2'>
+                <div className='flex items-center gap-2'>
+                  <Cpu className='size-5 text-blue-500' />
+                  <h2 className='text-xl font-bold tracking-tight'>{t('Supported Production Models')}</h2>
+                </div>
+                <Badge variant='outline' className='text-xs font-semibold border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 gap-1 px-2.5 py-0.5'>
+                  <Sparkles className='size-3' />
+                  {t('100% OpenAI API Compatible')}
+                </Badge>
+              </div>
+
+              <p className='text-muted-foreground text-sm leading-relaxed'>
+                {t('APIVEL strictly aggregates premier high-performance frontier models. Select and copy any model ID below to insert directly into your SDK payload or AI client (Cursor, Claude Code, Cherry Studio, NextChat):')}
+              </p>
+
+              {/* Filter Tabs */}
+              <div className='flex flex-wrap gap-1.5 pb-1'>
+                {(['All', 'DeepSeek', 'Qwen', 'GLM', 'Kimi', 'MiniMax', 'Doubao'] as const).map((s) => (
+                  <button
+                    key={s}
+                    type='button'
+                    onClick={() => setSelectedSeries(s)}
+                    className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+                      selectedSeries === s
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+
+              {/* Models Grid */}
+              <div className='grid gap-3 sm:grid-cols-2'>
+                {filteredModels.map((m) => (
+                  <div
+                    key={m.id}
+                    className='rounded-xl border border-border/40 bg-muted/10 hover:bg-muted/20 hover:border-border/70 p-3.5 flex flex-col justify-between gap-2.5 transition-all shadow-xs'
+                  >
+                    <div className='space-y-1.5'>
+                      <div className='flex items-center justify-between gap-2'>
+                        <span className='font-bold text-sm text-foreground'>{m.name}</span>
+                        <span
+                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                            m.badgeTone === 'emerald'
+                              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                              : m.badgeTone === 'blue'
+                              ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30'
+                              : m.badgeTone === 'purple'
+                              ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30'
+                              : m.badgeTone === 'amber'
+                              ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                              : 'bg-muted text-muted-foreground border border-border/40'
+                          }`}
+                        >
+                          {m.tag}
+                        </span>
+                      </div>
+                      <p className='text-xs text-muted-foreground line-clamp-2 leading-relaxed'>
+                        {m.description}
+                      </p>
+                    </div>
+
+                    <div className='flex items-center justify-between gap-2 pt-1 border-t border-border/20 font-mono text-[11px] bg-background/50 rounded-lg px-2.5 py-1.5'>
+                      <code className='text-foreground font-semibold select-all truncate'>{m.id}</code>
+                      <CopyButton
+                        value={m.id}
+                        variant='ghost'
+                        size='sm'
+                        className='h-6 w-6 p-0 shrink-0 text-muted-foreground hover:text-foreground'
+                        tooltip={`Copy ${m.id}`}
+                        successTooltip='Copied Model ID!'
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Free Trial Quota Callout */}
+              <div className='flex items-center justify-between flex-wrap gap-2 text-xs bg-emerald-500/10 border border-emerald-500/25 rounded-xl px-3.5 py-2.5 text-emerald-700 dark:text-emerald-300'>
+                <span className='flex items-center gap-1.5 font-medium'>
+                  <Sparkles className='size-3.5 shrink-0 text-emerald-500' />
+                  <span>{t('All accounts include $0.20 free welcome credit — test DeepSeek V4 & Qwen 3.8 Flash for hundreds of thousands of tokens.')}</span>
+                </span>
+                <Link to='/pricing' className='font-bold hover:underline shrink-0'>
+                  {t('View Detailed Pricing →')}
+                </Link>
+              </div>
+            </section>
+
             {/* Code Examples */}
             <section id='code-examples' className='space-y-4 scroll-mt-24'>
               <div className='flex items-center gap-2'>
@@ -272,7 +514,7 @@ function DocsPage() {
                 <h2 className='text-xl font-bold tracking-tight'>Code Examples</h2>
               </div>
               <p className='text-muted-foreground text-sm leading-relaxed'>
-                Because APIVEL uses an OpenAI-compatible schema, you can swap your existing endpoints by updating your SDK configurations:
+                Because APIVEL uses an OpenAI-compatible schema, you can swap your existing endpoints by updating your SDK configurations (using `deepseek-v4-flash` or any model ID above):
               </p>
 
               <div className='space-y-5'>
@@ -284,7 +526,7 @@ function DocsPage() {
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer sk-apivel_your_key_here" \\
   -d '{
-    "model": "deepseek-chat",
+    "model": "deepseek-v4-flash",
     "messages": [{"role": "user", "content": "Hello!"}],
     "temperature": 0.7
   }'`}
@@ -302,8 +544,9 @@ client = OpenAI(
     base_url="${baseUrl}"
 )
 
+# Call DeepSeek V4 Flash or any supported model (e.g. qwen3.8-max, glm-5.3)
 response = client.chat.completions.create(
-    model="deepseek-chat",
+    model="deepseek-v4-flash",
     messages=[{"role": "user", "content": "Explain fallback routing in 1 sentence."}]
 )
 
@@ -325,7 +568,7 @@ const openai = new OpenAI({
 async function main() {
   const completion = await openai.chat.completions.create({
     messages: [{ role: 'user', content: 'Hello APIVEL!' }],
-    model: 'deepseek-chat',
+    model: 'deepseek-v4-flash',
   });
 
   console.log(completion.choices[0].message.content);

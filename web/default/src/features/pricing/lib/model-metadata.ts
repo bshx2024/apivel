@@ -265,7 +265,7 @@ function inferContextAndOutputs(
   }
 
   const lower = name.toLowerCase()
-  if (lower.includes('1m') || lower.includes('-long')) {
+  if (lower.includes('1m') || lower.includes('-long') || lower.includes('kimi') || lower.includes('moonshot')) {
     return { context: 1_000_000, maxOutput: 65_536 }
   }
   if (

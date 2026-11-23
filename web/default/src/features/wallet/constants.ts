@@ -24,7 +24,7 @@ For commercial licensing, please contact support@quantumnous.com
  * Default preset amount multipliers
  * Used to generate quick select amounts based on minimum topup
  */
-export const DEFAULT_PRESET_MULTIPLIERS = [5, 29, 99, 299, 899]
+export const DEFAULT_PRESET_MULTIPLIERS = [2, 5, 29, 99, 299, 899]
 
 /**
  * Payment method types

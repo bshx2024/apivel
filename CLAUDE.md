@@ -135,3 +135,25 @@ For request structs that are parsed from client JSON and then re-marshaled to up
 ### Rule 7: Billing Expression System — Read `pkg/billingexpr/expr.md`
 
 When working on tiered/dynamic billing (expression-based pricing), you MUST read `pkg/billingexpr/expr.md` first. It documents the design philosophy, expression language (variables, functions, examples), full system architecture (editor → storage → pre-consume → settlement → log display), token normalization rules (`p`/`c` auto-exclusion), quota conversion, and expression versioning. All code changes to the billing expression system must follow the patterns described in that document.
+
+### Rule 8: Model Alignment — Strictly Align with Actual Supported Models
+
+When communicating with users, drafting customer-facing emails, writing onboarding guides, marketing copy, or system documentation, NEVER hallucinate or mention generic unconfigured models (such as OpenAI GPT-4o, Anthropic Claude, Google Gemini) unless they actually exist in the production `channels` table.
+
+**Actual Production Supported Models for APIVEL:**
+- **DeepSeek Series**: `deepseek-v4-flash`, `deepseek-v4.1-flash`, `deepseek-v4-pro`, `deepseek-chat`, `deepseek-v3`, `deepseek-reasoner`
+- **Qwen Series**: `qwen3.8-flash`, `qwen3.8-max`, `qwen3.8-omni-flash`
+- **GLM Series**: `glm-5.3-flash`, `glm-5.3`, `glm-5.3-flashx`
+- **Kimi Series**: `kimi-k3`
+- **Doubao Seedance Series (Video)**: `Doubao-Seedance-2.0-mini`, `Doubao-Seedance-2.5`
+
+### Rule 9: Server Boundary & Project Separation — Strict Server Binding
+
+This project is **apivel** (domain: `apivel.com`).
+- **Production Server IP**: `192.3.41.219`
+- **SSH Auth**: `~/.ssh/id_ed25519`, User `root`
+- **Nginx Config**: `/etc/nginx/sites-available/apivel.conf`
+- **Container Path**: `/root/new-api`
+
+**Strict Restriction**: NEVER connect to or query `192.119.88.209` under any circumstances. That server belongs to a separate project (`apivale.com`). All scripts, queries, log inspections, and deployments MUST strictly target `192.3.41.219`.
+

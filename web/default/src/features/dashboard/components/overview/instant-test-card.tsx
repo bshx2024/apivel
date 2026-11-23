@@ -58,6 +58,13 @@ interface QuickPrompt {
   prompt: string
 }
 
+interface UserPersona {
+  source?: string
+  useCase?: string
+  models?: string[]
+  budget?: string
+}
+
 export function InstantTestCard({
   apiKey = '',
   baseUrl = '',
@@ -66,6 +73,7 @@ export function InstantTestCard({
 }: InstantTestCardProps) {
   const { t } = useTranslation()
   const [selectedModel, setSelectedModel] = useState<ModelChoice>('deepseek-v4-flash')
+  const [persona, setPersona] = useState<UserPersona | null>(null)
   const [inputVal, setInputVal] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([])
@@ -75,6 +83,28 @@ export function InstantTestCard({
   const [isExpanded, setIsExpanded] = useState(true)
   const abortControllerRef = useRef<AbortController | null>(null)
   const responseBoxRef = useRef<HTMLDivElement>(null)
+
+  // 联动问卷偏好：若用户在问卷中明确偏好 Qwen 或 GLM，优先切换为对应极速模型
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('apivel_user_persona')
+      if (raw) {
+        const p: UserPersona = JSON.parse(raw)
+        setPersona(p)
+        if (p.models && p.models.length > 0) {
+          if (p.models.includes('qwen') && !p.models.includes('deepseek')) {
+            setSelectedModel('qwen3.8-flash')
+          } else if (p.models.includes('deepseek')) {
+            setSelectedModel('deepseek-v4-flash')
+          } else if (p.models.includes('glm')) {
+            setSelectedModel('glm-5.3-flash')
+          }
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [])
 
   const quickPrompts: QuickPrompt[] = [
     {
@@ -248,6 +278,12 @@ export function InstantTestCard({
               <Badge variant='outline' className='text-[10px] py-0 px-1.5 font-mono text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20'>
                 {t('免配置即测', '免配置即测')}
               </Badge>
+              {persona?.models && persona.models.length > 0 && (
+                <Badge variant='outline' className='text-[10px] py-0 px-1.5 font-mono text-primary border-primary/40 bg-primary/10 hidden sm:inline-flex items-center gap-1'>
+                  <Sparkles className='size-2.5 text-amber-500' />
+                  <span>{t('已根据您的入驻偏好推荐', '已根据您的入驻偏好推荐')}</span>
+                </Badge>
+              )}
             </div>
             <p className='text-xs text-muted-foreground mt-0.5'>
               {t('无需打开命令行，在浏览器即可直接发起真实 API 握手与极速流式验证', '无需打开命令行，在浏览器即可直接发起真实 API 握手与极速流式验证')}

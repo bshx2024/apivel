@@ -39,6 +39,7 @@ type OAuthProvidersProps = {
   isWeChatLoading?: boolean
   onBeforeOAuthClick?: () => boolean
   redirect?: string
+  showDivider?: boolean
 }
 
 type ProviderButton = {
@@ -57,6 +58,7 @@ export function OAuthProviders({
   isWeChatLoading = false,
   onBeforeOAuthClick,
   redirect,
+  showDivider = true,
 }: OAuthProvidersProps) {
   const { t } = useTranslation()
   const {
@@ -256,16 +258,18 @@ export function OAuthProviders({
         </div>
       )}
 
-      <div className='relative pt-3 pb-1'>
-        <div className='absolute inset-0 flex items-center'>
-          <span className='w-full border-t border-neutral-200 dark:border-neutral-800' />
+      {showDivider && (
+        <div className='relative pt-3 pb-1'>
+          <div className='absolute inset-0 flex items-center'>
+            <span className='w-full border-t border-neutral-200 dark:border-neutral-800' />
+          </div>
+          <div className='relative flex justify-center text-xs uppercase'>
+            <span className='bg-background text-muted-foreground px-3 font-semibold tracking-wider'>
+              {t('Or continue with email')}
+            </span>
+          </div>
         </div>
-        <div className='relative flex justify-center text-xs uppercase'>
-          <span className='bg-background text-muted-foreground px-3 font-semibold tracking-wider'>
-            {t('Or continue with email')}
-          </span>
-        </div>
-      </div>
+      )}
     </div>
   )
 }

@@ -291,8 +291,15 @@ export function SummaryCards() {
               </span>
             </div>
 
-            <div className='font-mono text-2xl font-semibold tracking-tight'>
-              {formatQuota(remainQuota)}
+            <div className='flex flex-col gap-0.5'>
+              <div className='font-mono text-2xl font-semibold tracking-tight'>
+                {formatQuota(remainQuota)}
+              </div>
+              {remainQuota >= 100000 && requestCount === 0 && (
+                <div className='text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1 mt-0.5'>
+                  <span>🎁 {t('Welcome trial credit active (~300K+ tokens)')}</span>
+                </div>
+              )}
             </div>
 
             <div className='grid grid-cols-2 gap-2'>

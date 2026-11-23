@@ -61,6 +61,26 @@ export function TopupOfferStep({
 
   const TIERS = [
     {
+      amount: 2,
+      displayPrice: '$1.99',
+      receivedAmount: '$3.00',
+      badge: t('🌱 Nano · $1.99'),
+      badgeClass: 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30',
+      isPopular: false,
+      title: t('Nano Starter'),
+      tokens: t('≈ 1.5M Base Tokens'),
+      highlight: t('Up to 10M+ tokens on DeepSeek-v4-flash'),
+      features: [
+        t('First deposit bonus +50% included'),
+        t('Zero expiration, test instantly'),
+        t('Perfect for indie developers'),
+      ],
+      ctaText: t('Try for $1.99'),
+      icon: Sparkles,
+      borderClass: 'border-blue-500/40 dark:border-blue-500/30 hover:border-blue-500',
+      bgGradient: 'from-blue-500/5 via-background to-background',
+    },
+    {
       amount: 5,
       displayPrice: '$4.99',
       receivedAmount: '$7.50',
@@ -133,7 +153,7 @@ export function TopupOfferStep({
   }
 
   return (
-    <div className='flex flex-col h-full max-h-[82vh] overflow-y-auto px-6 py-5 space-y-5'>
+    <div className='flex flex-col h-full max-h-[85vh] overflow-y-auto px-6 py-5 space-y-5'>
       {/* Step Header */}
       <div className='flex items-center justify-between pb-2 border-b border-border/50'>
         <div className='flex items-center gap-2'>
@@ -177,8 +197,8 @@ export function TopupOfferStep({
         </div>
       </div>
 
-      {/* 3 Tier Cards */}
-      <div className='grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-1'>
+      {/* 4 Tier Cards */}
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1'>
         {TIERS.map((tier) => {
           const Icon = tier.icon
           return (

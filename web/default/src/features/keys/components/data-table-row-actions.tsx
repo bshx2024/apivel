@@ -33,8 +33,9 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
-import { copyToClipboard } from '@/lib/copy-to-clipboard'
+import { copyToClipboard, isMobileDevice, sendKeyToEmail } from '@/lib/copy-to-clipboard'
 import { track } from '@/lib/tracker'
+import { useAuthStore } from '@/stores/auth-store'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -89,6 +90,7 @@ export function DataTableRowActions<TData>({
   row,
 }: DataTableRowActionsProps<TData>) {
   const { t } = useTranslation()
+  const user = useAuthStore((state) => state.auth.user)
   const apiKey = apiKeySchema.parse(row.original)
   const {
     setOpen,
@@ -223,12 +225,25 @@ export function DataTableRowActions<TData>({
               if (!realKey) return
               const ok = await copyToClipboard(realKey)
               if (ok) {
-                toast.success(t('API Key copied to clipboard!'), {
-                  action: {
-                    label: t('Test in Playground →'),
-                    onClick: () => navigate({ to: '/playground' }),
-                  },
-                })
+                if (isMobileDevice()) {
+                  toast.success(
+                    t('API Key 已复制！可在移动端 Playground 测试，或一键发至邮箱电脑使用', 'API Key 已复制！可在移动端 Playground 测试，或一键发至邮箱电脑使用'),
+                    {
+                      action: {
+                        label: t('发到我的邮箱 →', '发到我的邮箱 →'),
+                        onClick: () => sendKeyToEmail(realKey, user?.email),
+                      },
+                      duration: 6000,
+                    }
+                  )
+                } else {
+                  toast.success(t('API Key copied to clipboard!'), {
+                    action: {
+                      label: t('Test in Playground →'),
+                      onClick: () => navigate({ to: '/playground' }),
+                    },
+                  })
+                }
                 track('copy_api_key', { from: 'row_action', id: apiKey.id })
               }
             }}

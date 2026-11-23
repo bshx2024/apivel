@@ -34,13 +34,24 @@ func GetIPSubnetKey(ipStr string) string {
 			network := ip.Mask(mask)
 			return fmt.Sprintf("%s/32", network.String())
 		}
-		// Standard IPv6 mask /64
-		mask := net.CIDRMask(64, 128)
+		// Custom handling for dynamic residential pools (e.g., Rogers Canada 2605:8d80::/40)
+		if strings.HasPrefix(strings.ToLower(ipStr), "2605:8d80:") {
+			mask := net.CIDRMask(40, 128)
+			network := ip.Mask(mask)
+			return fmt.Sprintf("%s/40", network.String())
+		}
+		// Standard IPv6 mask /48 (RFC 6177 site boundary to prevent SLAAC/privacy extension rotation abuse)
+		mask := net.CIDRMask(48, 128)
 		network := ip.Mask(mask)
-		return fmt.Sprintf("%s/64", network.String())
+		return fmt.Sprintf("%s/48", network.String())
 	}
 
 	return ipStr
+}
+
+// GetSubnet is an alias to GetIPSubnetKey returning the /24 IPv4 or /48 IPv6 subnet
+func GetSubnet(ipStr string) string {
+	return GetIPSubnetKey(ipStr)
 }
 
 // GetTrustedClientIP extracts client IP safely from trusted proxy headers

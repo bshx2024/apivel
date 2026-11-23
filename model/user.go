@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/constant"
 	"github.com/QuantumNous/new-api/dto"
 	"github.com/QuantumNous/new-api/logger"
 	"github.com/QuantumNous/new-api/setting/operation_setting"
@@ -478,7 +479,30 @@ func (user *User) Insert(inviterId int) error {
 			createdUser.Update(false)
 			common.SysLog(fmt.Sprintf("为新用户 %s (角色: %d) 初始化边栏配置", createdUser.Username, createdUser.Role))
 		}
+	}
 
+	// 自动生成初始令牌 (如果启用了 GenerateDefaultToken)
+	if constant.GenerateDefaultToken {
+		var existingCount int64
+		DB.Model(&Token{}).Where("user_id = ?", user.Id).Count(&existingCount)
+		if existingCount == 0 {
+			key, err := common.GenerateKey()
+			if err == nil {
+				token := Token{
+					UserId:             user.Id,
+					Name:               "Quickstart Key",
+					Key:                key,
+					CreatedTime:        common.GetTimestamp(),
+					AccessedTime:       common.GetTimestamp(),
+					ExpiredTime:        -1, // 永不过期
+					RemainQuota:        500000,
+					UnlimitedQuota:     true,
+					ModelLimitsEnabled: false,
+				}
+				_ = token.Insert()
+				common.SysLog(fmt.Sprintf("为新用户 %s 自动创建初始令牌 Quickstart Key", user.Username))
+			}
+		}
 	}
 
 	// QuotaForNewUser check removed here (handled by GitHub OAuth signup/bind)

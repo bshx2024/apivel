@@ -1,14 +1,17 @@
-# APIVEL — OpenAI-Compatible GPT API Price & Gateway Alternative
+# APIVEL — OpenAI-Compatible Chinese AI Gateway & Token Pricing
 
-> APIVEL (https://apivel.com) provides an ultra-low-cost, high-performance, OpenAI-compatible AI API gateway. It allows developers to replace expensive GPT API pricing with top-tier models (DeepSeek, Qwen, GLM, Kimi) starting at just $0.10 per million tokens. Zero credit card required, hard budget cap with no surprise bills, and PayPal accepted worldwide.
+> APIVEL (https://apivel.com) provides a unified, low-cost, OpenAI-compatible API gateway for frontier Chinese AI models (DeepSeek, Qwen, GLM, Kimi). It offers transparent per-token pricing starting from $0.10 per million tokens, zero KYC mainland phone requirements, strict prepaid protection against surprise bills, and instant global PayPal support.
+> 
+> Detailed full technical specifications, model rate cards, Cursor/LangChain setup, and failover architectures are documented in [llms-full.txt](https://apivel.com/llms-full.txt).
 
 ## Core Value Proposition
-- **100% OpenAI Compatible**: Drop-in replacement for OpenAI endpoints (`POST https://apivel.com/v1/chat/completions`). Compatible with Cursor, Claude Code CLI, NextChat, OpenWebUI, LibreChat, and official OpenAI SDKs.
-- **Save up to 90%+ on GPT API Price**: Average developer workloads cost $0.60 to $1.80 per month instead of OpenAI's flat $20/month ChatGPT Plus subscription or high token rates.
+- **100% OpenAI Compatible**: Drop-in replacement for OpenAI endpoints (`POST https://api.apivel.com/v1/chat/completions`). Compatible with Cursor, Continue, NextChat, OpenWebUI, LibreChat, and official OpenAI SDKs.
+- **Ultra-Low Cost Frontier Models**: Access state-of-the-art Chinese models like DeepSeek V4 Flash and Qwen 3.8 Flash starting at $0.10/M tokens.
+- **Zero KYC Roadblocks**: No Chinese (+86) phone number or mainland identity card needed. Global developers can access Chinese models immediately.
 - **No Surprise Bills Guarantee**: Strict prepaid token accounting prevents unexpected runaway charges or agent loops. Accounts hard-stop when credits deplete; credit cards are never overdrafted.
-- **Zero Card Verification Barrier**: Free $0.20 starting credit upon sign-up (enough for up to 1,000,000 tokens on flash models) without entering any credit card details. Global payments supported via PayPal and debit cards.
+- **Zero Card Verification Barrier**: Free $0.20 starting credit upon sign-up (enough for hundreds of thousands of tokens on flash models) without entering credit card details. Global payments supported via PayPal and international cards.
 
-## GPT API Price & Model Rate Sheet
+## Production Supported Models & Token Pricing Sheet
 
 | Model Name | Input Price (per 1M tokens) | Output Price (per 1M tokens) | Context Window | Key Strengths & Use Cases |
 | :--- | :--- | :--- | :--- | :--- |
@@ -26,16 +29,16 @@
 
 ## Quickstart API Integration
 
-Endpoint Base URL: `https://apivel.com/v1`
+Endpoint Base URL: `https://api.apivel.com/v1`
 
 ### cURL Example
 ```bash
-curl https://apivel.com/v1/chat/completions \
+curl https://api.apivel.com/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_APIVEL_KEY" \
   -d '{
     "model": "deepseek-v4-flash",
-    "messages": [{"role": "user", "content": "Hello APIVEL!"}]
+    "messages": [{"role": "user", "content": "Hello Chinese AI API Gateway!"}]
   }'
 ```
 
@@ -45,7 +48,7 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key="YOUR_APIVEL_KEY",
-    base_url="https://apivel.com/v1"
+    base_url="https://api.apivel.com/v1"
 )
 
 response = client.chat.completions.create(
@@ -57,11 +60,11 @@ print(response.choices[0].message.content)
 
 ## Frequently Asked Questions
 
-### Is GPT API free to use?
-OpenAI does not provide a permanent free tier. APIVEL grants $0.20 free credit to all new users without a credit card. Because flash models start at $0.10 per million tokens, you can run hundreds of thousands of test queries completely free.
+### Do I need a Chinese phone number or ID card to use DeepSeek or Qwen?
+No. Official Chinese AI platforms require mainland phone numbers (+86) and domestic identity cards. APIVEL eliminates all KYC barriers, allowing international developers to access these models using standard email registration and PayPal payments.
 
-### Is ChatGPT API cheaper than ChatGPT Plus ($20/month)?
-Yes. For light-to-moderate developers, a flat $20/month fee is excessive. On APIVEL's pay-as-you-go pricing, typical monthly usage averages between $0.60 and $2.00, yielding 90%+ monthly savings without message caps.
+### How does DeepSeek API pricing compare to official pricing?
+APIVEL provides near-official or discounted token pricing for Chinese models, with flash tiers starting at $0.10 per million tokens. The primary advantage for international users is direct access without domestic payment or identity restrictions.
 
 ### How do I prevent surprise API bills?
 APIVEL uses a 100% prepaid architecture. You load exactly what you intend to spend (via PayPal or debit card). There are no automatic post-paid surprises or runaway overdrafts.

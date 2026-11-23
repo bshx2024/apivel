@@ -137,9 +137,9 @@ export function usePayment() {
           return false
         }
 
-        // Handle Stripe payment
+        // Handle Stripe payment - use direct navigation to prevent popup blockers on async promises
         if (isStripe && (response.data as { pay_link?: string })?.pay_link) {
-          window.open((response.data as { pay_link: string }).pay_link, '_blank')
+          window.location.href = (response.data as { pay_link: string }).pay_link
           toast.success(i18next.t('Redirecting to payment page...'))
           return true
         }

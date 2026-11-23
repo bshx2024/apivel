@@ -55,6 +55,13 @@ func SubscriptionRequestStripePay(c *gin.Context) {
 	}
 
 	userId := c.GetInt("id")
+
+	// 支付风控拦截 (防高频试卡与未完成订单堆积)
+	if allowed, reason := service.CheckPaymentAllowed(c.Request.Context(), userId); !allowed {
+		common.ApiErrorMsg(c, reason)
+		return
+	}
+
 	user, err := model.GetUserById(userId, false)
 	if err != nil {
 		common.ApiError(c, err)

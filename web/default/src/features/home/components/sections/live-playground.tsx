@@ -141,6 +141,12 @@ export function LivePlayground({
     const query = (textToSend || promptInput).trim()
     if (!query || isGenerating) return
 
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem('apivel_last_demo_prompt', query)
+      } catch (_e) {}
+    }
+
     const savedCalls = localStorage.getItem('playground_remaining_calls')
     const currentCalls = savedCalls !== null ? parseInt(savedCalls, 10) : 5
 

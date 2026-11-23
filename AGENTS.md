@@ -149,3 +149,14 @@ When communicating with users, drafting customer-facing emails, writing onboardi
 
 **API Interface:** Standard OpenAI-compatible format (`POST /v1/chat/completions`), but models served must strictly match the above list. Always highlight the real ultra-low cost advantages (e.g. DeepSeek Flash, GLM Flash, Qwen Flash) where $0.20 free credit provides hundreds of thousands of tokens.
 
+### Rule 9: Server Boundary & Project Separation — Strict Server Binding
+
+This project is **apivel** (domain: `apivel.com`).
+- **Production Server IP**: `192.3.41.219`
+- **SSH Auth**: `~/.ssh/id_ed25519`, User `root`
+- **Nginx Config**: `/etc/nginx/sites-available/apivel.conf`
+- **Container Path**: `/root/new-api`
+
+**Strict Restriction**: NEVER connect to or query `192.119.88.209` under any circumstances. That server belongs to a separate project (`apivale.com`). All scripts, queries, log inspections, and deployments MUST strictly target `192.3.41.219`.
+
+

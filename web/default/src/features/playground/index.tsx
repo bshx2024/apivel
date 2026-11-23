@@ -117,11 +117,23 @@ export function Playground() {
       const urlParams = new URLSearchParams(window.location.search)
       const urlModel = urlParams.get('model')
       if (urlModel && !urlModel.toLowerCase().includes('space-bunny')) {
-        const found = modelsData.find(
-          (m) =>
-            m.value.toLowerCase() === urlModel.toLowerCase() ||
-            m.label.toLowerCase() === urlModel.toLowerCase()
-        )
+        const cleanUrl = urlModel.toLowerCase().trim()
+        const found =
+          modelsData.find(
+            (m) =>
+              m.value.toLowerCase() === cleanUrl ||
+              m.label.toLowerCase() === cleanUrl
+          ) ||
+          modelsData.find(
+            (m) =>
+              m.value.toLowerCase().startsWith(cleanUrl) ||
+              cleanUrl.startsWith(m.value.toLowerCase())
+          ) ||
+          modelsData.find((m) => {
+            const cleanM = m.value.toLowerCase().replace(/-\d+$/, '')
+            const cleanU = cleanUrl.replace(/-\d+$/, '')
+            return cleanM === cleanU || cleanM.includes(cleanU) || cleanU.includes(cleanM)
+          })
         if (found) {
           targetModel = found.value
         }

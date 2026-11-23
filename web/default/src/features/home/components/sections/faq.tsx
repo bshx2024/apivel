@@ -54,47 +54,47 @@ export function FAQ() {
 
   const faqItems = [
     {
-      q: "Is GPT API free to use?",
-      a: "While OpenAI's official API does not provide a permanent free tier, APIVEL grants a $0.20 free testing credit upon registration with zero credit card required. Because our flash models cost just $0.10 per million tokens, your free balance covers up to 1,000,000 tokens completely free."
+      q: "How to buy DeepSeek API without a Chinese (+86) phone number?",
+      a: "Official DeepSeek accounts require domestic Chinese (+86) SMS verification and local bank cards. APIVEL provides a drop-in OpenAI-compatible gateway that accepts global email registration and instant PayPal billing with zero KYC required."
     },
     {
-      q: "Is ChatGPT API cheaper than ChatGPT Plus ($20 per month)?",
-      a: "Yes. For individual developers and light-to-moderate users, pay-as-you-go GPT API pricing is dramatically cheaper than a flat $20/month subscription. Using APIVEL with clients like Cursor, NextChat, or LibreChat typically costs between $0.60 and $2.00 per month, saving over 90% without message limits."
+      q: "How does APIVEL prevent DeepSeek's frequent 503 \"Service Too Busy\" outages?",
+      a: "APIVEL employs multi-channel smart failover and load balancing. When an upstream provider experiences traffic congestion or rate limits, requests are automatically re-routed to healthy standby channels in milliseconds."
     },
     {
-      q: "How much do 1,000 and 1,000,000 tokens cost on APIVEL?",
-      a: "On APIVEL, 1,000 tokens cost between $0.0001 and $0.0003. One million tokens (roughly 750,000 English words) cost between $0.10 and $0.38 for flash models like DeepSeek V4 Flash and Qwen 3.8 Flash, compared to $5.00+ on legacy frontier models."
+      q: "How much does DeepSeek API cost compared to OpenAI and Claude?",
+      a: "DeepSeek V4 Flash costs $0.113 per 1M input tokens and $0.382 per 1M output tokens on APIVEL, approximately 95% cheaper than OpenAI GPT-4o, while maintaining 100% drop-in OpenAI SDK compatibility."
     },
     {
-      q: "How does APIVEL prevent surprise bills and runaway token costs?",
-      a: "APIVEL uses a strict 100% prepaid system. There is zero post-paid overdraft risk and no automatic card recharge loops. When your balance reaches zero, requests stop cleanly without generating surprise charges on your bank account."
+      q: "Do I need a monthly subscription or can I pay as you go?",
+      a: "No monthly subscription is required. APIVEL uses a strict 100% prepaid pay-as-you-go model. You top up exactly what you intend to spend via PayPal or card. Zero surprise bills, no recurring monthly lock-ins, and your credits never expire."
     },
     {
-      q: "Is APIVEL compatible with OpenAI SDKs and tools like Cursor, Claude Code CLI, and VS Code?",
-      a: `Yes. APIVEL endpoints are 100% OpenAI-compatible. You can use official OpenAI SDKs, LangChain, LlamaIndex, Cursor, Claude Code CLI, and SillyTavern simply by updating the baseURL to ${baseUrl}.`
+      q: "Is APIVEL compatible with Cursor, Claude Code CLI, and official OpenAI SDKs?",
+      a: `Yes. APIVEL endpoints are 100% OpenAI-compatible. You can use official OpenAI SDKs, LangChain, Cursor, Claude Code CLI, and Continue simply by updating the baseURL to ${baseUrl}.`
     },
     {
-      q: "What payment methods are supported on APIVEL?",
-      a: "APIVEL supports global payment methods including PayPal, debit cards, and international credit cards. You can test immediately with zero card required, and top up as needed."
+      q: "Which Chinese AI models are supported on APIVEL?",
+      a: "APIVEL strictly serves production-ready Chinese models: DeepSeek Series (deepseek-v4-flash, deepseek-v4.1-flash, deepseek-v4-pro, deepseek-chat, deepseek-v3, deepseek-reasoner), Alibaba Qwen Series (qwen3.8-flash, qwen3.8-max, qwen3.8-omni-flash), Zhipu GLM Series (glm-5.3-flash, glm-5.3, glm-5.3-flashx), Moonshot Kimi (kimi-k3), and ByteDance Doubao Seedance Series."
     }
   ]
 
   const useCases = [
     {
       title: "Multi-Model AI Agent Routing",
-      desc: "For advanced AI agents, developers often need different models for different steps (e.g., using a cheap model like Gemini Flash for classification, Claude 3.5 Sonnet for code generation, and GPT-4o for final summarization). Integrating these individually is complex and expensive. With APIVEL’s LLM Gateway, you can orchestrate these steps through a single client connection. This drastically reduces code complexity and centralized billing management."
+      desc: "For advanced AI agents, developers often need different models for different steps (e.g., using a cheap model like DeepSeek V4 Flash for high-speed triage, Qwen 3.8 Max for complex reasoning, and GLM-5.3 for JSON structured outputs). APIVEL orchestrates these models through a single OpenAI-compatible connection with centralized token accounting."
     },
     {
       title: "High-Availability Chatbot Deployments",
-      desc: "Customer support chatbots cannot afford downtime. By using APIVEL as your LLM gateway, your chatbot is insulated from individual provider outages. If Anthropic’s API experiences a service disruption, APIVEL can automatically route requests to an equivalent model or trigger a graceful fallback, keeping your customer support active 24/7."
+      desc: "Production chatbots cannot afford downtime. By using APIVEL as your LLM gateway, your application is insulated from single-provider 503 traffic surges. If an upstream channel experiences congestion, APIVEL automatically routes requests to a healthy standby channel in milliseconds."
     },
     {
-      title: "Global AI SaaS Applications",
-      desc: "Building a SaaS that serves users globally requires high performance and compliant billing. APIVEL’s multi-region infrastructure ensures that API calls are routed via the closest node, minimizing network latency. Meanwhile, support for PayPal allows you to scale your development globally, accepting payments from team members regardless of regional credit card limitations."
+      title: "Global Developer & SaaS Applications",
+      desc: "Building a SaaS serving global users requires reliable low latency and frictionless checkout. APIVEL’s multi-region edge proxy minimizes routing hops, while native PayPal support allows international developers (across the US, Europe, India, and worldwide) to purchase API balance without domestic payment barriers."
     },
     {
-      title: "Developer Tool Integration (e.g., Cursor, VS Code)",
-      desc: "Many developers use IDE extensions like Cursor, VS Code, or Copilot, but prefer to use their own API keys to control costs. APIVEL acts as the perfect high-availability endpoint for local developer tools, providing an OpenAI-compatible endpoint that integrates smoothly into any editor. Simply enter the custom endpoint and your APIVEL key, and you instantly unlock 40+ models directly in your workspace."
+      title: "IDE & Coding Tool Integration (Cursor, Claude Code, VS Code)",
+      desc: "Many software engineers use Cursor, Claude Code, or VS Code extensions, preferring high-intelligence Chinese models like DeepSeek V4 and Qwen 3.8 to dramatically cut coding costs. Simply set the custom baseURL to our OpenAI endpoint and paste your APIVEL key to code seamlessly."
     }
   ]
 

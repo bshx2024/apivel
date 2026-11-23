@@ -52,11 +52,14 @@ export const OFFICIAL_MODEL_PRICES: Record<string, OfficialPriceEntry> = {
   'glm-4-air': { inputPerM: 0.15, outputPerM: 0.15, avgPerM: 0.15, officialProvider: 'Zhipu AI' },
 
   // Kimi Series (Moonshot AI)
+  'kimi-k3.1-pro': { inputPerM: 1.78, outputPerM: 9.32, avgPerM: 5.55, officialProvider: 'Moonshot AI' },
+  'kimi-k3.1-pro-highspeed': { inputPerM: 3.56, outputPerM: 18.63, avgPerM: 11.10, officialProvider: 'Moonshot AI' },
   'kimi-k3': { inputPerM: 1.8, outputPerM: 5.4, avgPerM: 3.6, officialProvider: 'Moonshot AI' },
   'moonshot-v1-128k': { inputPerM: 1.8, outputPerM: 5.4, avgPerM: 3.6, officialProvider: 'Moonshot AI' },
   'moonshot-v1-32k': { inputPerM: 0.6, outputPerM: 1.8, avgPerM: 1.2, officialProvider: 'Moonshot AI' },
 
   // MiniMax Series
+  'minimax-m3.1-flash': { inputPerM: 0.04, outputPerM: 0.15, avgPerM: 0.095, officialProvider: 'MiniMax' },
   'minimax-m3': { inputPerM: 1.2, outputPerM: 3.6, avgPerM: 2.4, officialProvider: 'MiniMax' },
   'abab6.5t': { inputPerM: 0.4, outputPerM: 1.2, avgPerM: 0.8, officialProvider: 'MiniMax' },
   'abab7-chat': { inputPerM: 1.2, outputPerM: 3.6, avgPerM: 2.4, officialProvider: 'MiniMax' },

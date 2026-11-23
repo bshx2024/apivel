@@ -101,3 +101,34 @@ export async function copyToClipboard(text: string): Promise<boolean> {
     return fallbackCopyToClipboard(text)
   }
 }
+
+/**
+ * Detect if current device is mobile/touch environment
+ */
+export function isMobileDevice(): boolean {
+  if (typeof window === 'undefined') return false
+  return (
+    window.innerWidth < 768 ||
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    )
+  )
+}
+
+/**
+ * Open email draft with API key and developer setup instructions
+ */
+export function sendKeyToEmail(
+  apiKey: string,
+  userEmail?: string,
+  originUrl?: string
+): void {
+  if (typeof window === 'undefined') return
+  const origin = originUrl || window.location.origin
+  const subject = encodeURIComponent('【APIVEL】您的 API Key 凭证与开发连接配置')
+  const body = encodeURIComponent(
+    `您好！\n\n以下是您在 APIVEL 账户的 API 连接凭据，便于您在电脑端开发环境配置使用：\n\n- Base URL: ${origin}/v1\n- API Key: ${apiKey}\n- 推荐测试模型: deepseek-v4-flash, qwen3.8-flash\n\n快速接入代码示例（Python）：\nfrom openai import OpenAI\n\nclient = OpenAI(\n    base_url="${origin}/v1",\n    api_key="${apiKey}"\n)\n\nresponse = client.chat.completions.create(\n    model="deepseek-v4-flash",\n    messages=[{"role": "user", "content": "Hello APIVEL!"}]\n)\nprint(response.choices[0].message.content)\n\n祝您开发顺利！\nAPIVEL 团队`
+  )
+  window.open(`mailto:${userEmail || ''}?subject=${subject}&body=${body}`, '_blank')
+}
+

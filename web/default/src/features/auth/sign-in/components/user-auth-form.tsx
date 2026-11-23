@@ -21,7 +21,7 @@ import type { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link } from '@tanstack/react-router'
-import { Loader2, LogIn, KeyRound } from 'lucide-react'
+import { Loader2, LogIn, KeyRound, Sparkles } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import {
@@ -374,6 +374,20 @@ export function UserAuthForm({
         className={cn('grid gap-4', className)}
         {...props}
       >
+        {/* Zero-Login Live Sandbox Escape Hatch / Fallback */}
+        <div className='flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/40 border border-border/60 text-xs shadow-2xs'>
+          <div className='flex items-center gap-2 text-muted-foreground'>
+            <Sparkles className='size-4 text-amber-500 shrink-0' />
+            <span>{t('signin_try_first_prompt', 'Exploring models? Test real-time LLM streaming with zero login.')}</span>
+          </div>
+          <a
+            href='/?try=playground#playground'
+            className='shrink-0 inline-flex items-center gap-1 font-semibold text-primary hover:underline hover:text-primary/80 transition-colors'
+          >
+            <span>{t('signin_try_first_btn', '⚡ Try Live Sandbox →')}</span>
+          </a>
+        </div>
+
         {/* Primary Action: GitHub OAuth Button at Top */}
         <OAuthProviders
           status={status}
@@ -505,7 +519,7 @@ export function UserAuthForm({
           </div>
           <div className='flex items-center gap-2 font-medium text-foreground'>
             <span className='flex size-5 shrink-0 items-center justify-center rounded-full bg-purple-500/20 text-purple-500 text-[10px]'>🎁</span>
-            <span><strong>Instant $0.20 Free Credits</strong> — 100,000 trial tokens granted automatically on signup.</span>
+            <span><strong>Instant $0.20 Free Credits</strong> — Test 500,000+ tokens (DeepSeek Flash) with zero card required.</span>
           </div>
         </div>
 

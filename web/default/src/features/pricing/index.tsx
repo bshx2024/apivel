@@ -535,13 +535,21 @@ export function Pricing() {
                   </p>
                 </div>
               </div>
-              <Link
-                to='/sign-up'
-                search={{ redirect: '/pricing' }}
-                className='shrink-0 inline-flex h-9 items-center justify-center rounded-xl bg-blue-600 px-5 text-xs font-semibold text-white hover:bg-blue-500 shadow-md shadow-blue-500/25 transition-all cursor-pointer whitespace-nowrap'
-              >
-                {t('pricing_claim_cta', 'Claim $0.20 Free Credits →')}
-              </Link>
+              <div className='flex items-center gap-2 shrink-0'>
+                <a
+                  href='/?try=playground#playground'
+                  className='inline-flex h-9 items-center justify-center rounded-xl bg-card border border-border/80 hover:bg-accent px-4 text-xs font-semibold text-foreground transition-all cursor-pointer whitespace-nowrap shadow-2xs'
+                >
+                  ⚡ {t('pricing_test_first_btn', 'Try Zero-Login Demo')}
+                </a>
+                <Link
+                  to='/sign-up'
+                  search={{ redirect: '/pricing' }}
+                  className='inline-flex h-9 items-center justify-center rounded-xl bg-blue-600 px-5 text-xs font-semibold text-white hover:bg-blue-500 shadow-md shadow-blue-500/25 transition-all cursor-pointer whitespace-nowrap'
+                >
+                  {t('pricing_claim_cta', 'Claim $0.20 Free Credits →')}
+                </Link>
+              </div>
             </div>
           )}
           <header className='mx-auto mb-5 max-w-3xl pt-5 text-center sm:mb-8 sm:pt-10'>

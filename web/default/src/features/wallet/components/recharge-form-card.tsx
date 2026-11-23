@@ -17,9 +17,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useState, useEffect, useMemo } from 'react'
-import { Gift, ExternalLink, Loader2, Receipt, WalletCards, CreditCard, ShieldCheck, Lock, Zap } from 'lucide-react'
+import { Gift, ExternalLink, Loader2, Receipt, WalletCards, CreditCard, ShieldCheck, Lock, Zap, Sparkles } from 'lucide-react'
 import { SiPaypal } from 'react-icons/si'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from '@tanstack/react-router'
+import { useAuthStore } from '@/stores/auth-store'
 import { formatNumber } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -250,6 +252,9 @@ export function RechargeFormCard({
   processing = false,
 }: RechargeFormCardProps) {
   const { t } = useTranslation()
+  const navigate = useNavigate()
+  const user = useAuthStore((state) => state.auth.user)
+  const isNewUserWithFreeQuota = (user?.request_count ?? 0) === 0 && (user?.quota ?? 0) > 0
   const [localAmount, setLocalAmount] = useState(topupAmount.toString())
 
   const activeMethodType = useMemo(() => {
@@ -624,6 +629,39 @@ export function RechargeFormCard({
                 </p>
               </div>
 
+              {/* Inline Free Trial Balance Ready Callout */}
+              {isNewUserWithFreeQuota && (
+                <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-xl border border-emerald-500/35 bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-emerald-500/10 p-3.5 text-xs text-foreground shadow-xs backdrop-blur-sm animate-in fade-in slide-in-from-top-1 duration-300'>
+                  <div className='flex items-center gap-2.5 min-w-0'>
+                    <span className='text-lg shrink-0'>🎁</span>
+                    <div className='space-y-0.5'>
+                      <div className='flex items-center gap-2 flex-wrap'>
+                        <span className='font-bold text-emerald-700 dark:text-emerald-300'>
+                          {t('Complimentary $0.20 Trial Active (~300,000 Tokens)')}
+                        </span>
+                        <span className='text-[10px] font-semibold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded'>
+                          {t('No deposit required')}
+                        </span>
+                      </div>
+                      <p className='text-muted-foreground text-[11px] leading-tight'>
+                        {t('Your free credits are ready. Test DeepSeek V4 Flash, Qwen 3.8 & GLM 5.3 in playground or code before depositing.')}
+                      </p>
+                    </div>
+                  </div>
+                  <div className='flex items-center gap-2 shrink-0 self-stretch sm:self-auto'>
+                    <Button
+                      size='sm'
+                      type='button'
+                      onClick={() => navigate({ to: '/playground', search: { model: 'deepseek-v4-flash' } })}
+                      className='w-full sm:w-auto h-8 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-1.5 shadow-xs cursor-pointer'
+                    >
+                      <span>💬</span>
+                      <span>{t('Test in Playground →')}</span>
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               <div className='space-y-3 sm:space-y-4'>
                 <div className='flex items-center justify-between'>
                   <Label className='text-muted-foreground text-xs font-bold tracking-wider uppercase flex items-center gap-1.5'>
@@ -645,6 +683,7 @@ export function RechargeFormCard({
                       const minTopup = method.min_topup || 0
                       const disabled = minTopup > topupAmount
                       const isPayPal = method.type === 'paypal'
+                      const isStripe = method.type === 'stripe'
                       const isWaffoPancake = method.type === 'waffo_pancake' || method.type === 'waffo'
                       const isSubotiz = method.type === 'subotiz'
                       const isSelected = selectedPaymentMethod?.type === method.type
@@ -655,6 +694,10 @@ export function RechargeFormCard({
                         cardTheme = isSelected
                           ? 'border-[#0070ba] bg-[#0070ba]/15 shadow-lg shadow-[#0070ba]/15 ring-2 ring-[#0070ba]'
                           : 'border-blue-500/40 bg-blue-500/5 hover:border-blue-500/70 hover:bg-blue-500/10'
+                      } else if (isStripe) {
+                        cardTheme = isSelected
+                          ? 'border-blue-500 bg-blue-500/15 shadow-md shadow-blue-500/10 ring-1 ring-blue-500'
+                          : 'border-blue-500/30 bg-blue-500/5 hover:border-blue-500/60 hover:bg-blue-500/10'
                       } else if (isWaffoPancake) {
                         cardTheme = isSelected
                           ? 'border-indigo-500 bg-indigo-500/15 shadow-md shadow-indigo-500/10 ring-1 ring-indigo-500'
@@ -688,9 +731,14 @@ export function RechargeFormCard({
                               <span>★ {t('Recommended • Instant Checkout')}</span>
                             </div>
                           )}
+                          {isStripe && (
+                            <div className='absolute top-3 right-3 flex items-center gap-1 rounded-full bg-blue-500/15 border border-blue-500/30 px-2 py-0.5 text-[10px] font-bold text-blue-600 dark:text-blue-400'>
+                              <span>Visa / MC / Apple Pay / G Pay</span>
+                            </div>
+                          )}
                           {isWaffoPancake && (
                             <div className='absolute top-3 right-3 flex items-center gap-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 px-2 py-0.5 text-[10px] font-bold text-indigo-600 dark:text-indigo-400'>
-                              <span>Visa / MC / Alipay</span>
+                              <span>Visa / MC / Alipay (Alt)</span>
                             </div>
                           )}
                           {isSubotiz && (
@@ -707,17 +755,21 @@ export function RechargeFormCard({
                                 isFeatured ? 'size-11 sm:size-12' : 'size-10',
                                 isPayPal
                                   ? 'bg-[#003087]/15 text-[#0070ba] dark:text-[#0079c1] border border-blue-500/30'
-                                  : isWaffoPancake
-                                    ? 'bg-indigo-600/15 text-indigo-500 border border-indigo-500/25'
-                                    : isSubotiz
-                                      ? 'bg-emerald-600/15 text-emerald-500 border border-emerald-500/25'
-                                      : 'bg-muted border'
+                                  : isStripe
+                                    ? 'bg-blue-600/15 text-blue-500 border border-blue-500/25'
+                                    : isWaffoPancake
+                                      ? 'bg-indigo-600/15 text-indigo-500 border border-indigo-500/25'
+                                      : isSubotiz
+                                        ? 'bg-emerald-600/15 text-emerald-500 border border-emerald-500/25'
+                                        : 'bg-muted border'
                               )}
                             >
                               {isLoading ? (
                                 <Loader2 className={isFeatured ? 'size-6 animate-spin' : 'size-5 animate-spin'} />
                               ) : isPayPal ? (
                                 <SiPaypal className={isFeatured ? 'size-6 sm:size-7 text-[#0070ba] dark:text-[#0079c1]' : 'size-5 text-[#0070ba] dark:text-[#0079c1]'} />
+                              ) : isStripe ? (
+                                <CreditCard className='size-5 text-blue-500' />
                               ) : isWaffoPancake ? (
                                 <CreditCard className='size-5 text-indigo-500' />
                               ) : (
@@ -730,21 +782,25 @@ export function RechargeFormCard({
                                 <h4 className={cn('font-bold text-foreground leading-tight', isFeatured ? 'text-base sm:text-lg' : 'text-sm')}>
                                   {isPayPal
                                     ? t('PayPal Instant Checkout')
-                                    : isWaffoPancake
-                                      ? t('Credit Card & Alipay')
-                                      : isSubotiz
-                                        ? t('Cards & Apple/Google Pay')
-                                        : method.name}
+                                    : isStripe
+                                      ? t('Stripe (Cards & Apple Pay)')
+                                      : isWaffoPancake
+                                        ? t('Global Card & Alipay (Alt)')
+                                        : isSubotiz
+                                          ? t('Cards & Apple/Google Pay')
+                                          : method.name}
                                 </h4>
                               </div>
                               <p className={cn('text-muted-foreground leading-snug', isFeatured ? 'text-xs sm:text-[13px]' : 'text-[11px] line-clamp-2')}>
                                 {isPayPal
                                   ? t('Supports Visa, MasterCard, Amex & PayPal Balance. No PayPal account required for card checkout.')
-                                  : isWaffoPancake
-                                    ? t('Supports Visa, Mastercard, Apple Pay and Alipay scan checkout.')
-                                    : isSubotiz
-                                      ? t('Supports Visa, Mastercard, Amex, JCB, UnionPay, Apple Pay & Google Pay.')
-                                      : t('Instant Account Credit Activation')}
+                                  : isStripe
+                                    ? t('Direct checkout with Visa, Mastercard, American Express, Apple Pay, Google Pay & Link.')
+                                    : isWaffoPancake
+                                      ? t('Alternative card checkout supporting Visa, Mastercard, Apple Pay and Alipay scan.')
+                                      : isSubotiz
+                                        ? t('Supports Visa, Mastercard, Amex, JCB, UnionPay, Apple Pay & Google Pay.')
+                                        : t('Instant Account Credit Activation')}
                               </p>
                             </div>
                           </div>
@@ -760,6 +816,20 @@ export function RechargeFormCard({
                                   </span>
                                   <span>•</span>
                                   <span className='font-medium text-foreground/80'>{t('Direct Card Checkout (No Account Needed)')}</span>
+                                  <span>•</span>
+                                  <span className='flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium'>
+                                    <Zap className='size-3.5' />
+                                    {t('0s Instant Credit')}
+                                  </span>
+                                </>
+                              ) : isStripe ? (
+                                <>
+                                  <span className='flex items-center gap-1 text-blue-600 dark:text-blue-400 font-medium'>
+                                    <ShieldCheck className='size-3.5' />
+                                    {t('Official Stripe Gateway')}
+                                  </span>
+                                  <span>•</span>
+                                  <span>{t('Apple Pay / G Pay')}</span>
                                   <span>•</span>
                                   <span className='flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium'>
                                     <Zap className='size-3.5' />

@@ -35,6 +35,7 @@ import {
   Play,
   RadioTower,
   ShieldCheck,
+  Sparkles,
   Terminal,
   TerminalSquare,
   Timer,
@@ -813,26 +814,65 @@ export function OverviewDashboard() {
           </div>
         </div>
       )}
-      {!user?.github_id && (user?.quota ?? 0) <= 100000 && (
-        <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/40 rounded-2xl shadow-xs backdrop-blur-xs'>
-          <div className='flex items-center gap-3'>
-            <span className='flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/40 border border-emerald-200/50 dark:border-emerald-800/30 text-emerald-600 dark:text-emerald-400'>
-              <IconGithub className='size-5' />
-            </span>
-            <div>
-              <h4 className='text-sm font-semibold text-emerald-800 dark:text-emerald-200'>
-                {t('bind_github_bonus_title', '🎁 体验额度不足？立即绑定 GitHub 立享 $0.20 免费额度！')}
-              </h4>
-              <p className='text-xs text-emerald-600 dark:text-emerald-400 mt-0.5'>
-                {t('bind_github_bonus_desc', '您当前额度不足且尚未绑定 GitHub。立即绑定账号，即可立得 $0.20 (100,000) 免费测试额度，立即调试 10-20 次 API 接口！')}
-              </p>
+      {/* 免费额度与状态提示条：避免给有 100000 额度的新用户误报“额度不足” */}
+      {!user?.github_id && (
+        (user?.quota ?? 0) <= 0 ? (
+          <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-800/40 rounded-2xl shadow-xs backdrop-blur-xs'>
+            <div className='flex items-center gap-3'>
+              <span className='flex size-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-900/40 border border-amber-200/50 dark:border-amber-800/30 text-amber-600 dark:text-amber-400'>
+                <IconGithub className='size-5' />
+              </span>
+              <div>
+                <h4 className='text-sm font-semibold text-amber-800 dark:text-amber-200'>
+                  {t('bind_github_bonus_title', '🎁 体验额度已用尽？立即绑定 GitHub 立享 $0.20 免费额度！')}
+                </h4>
+                <p className='text-xs text-amber-600 dark:text-amber-400 mt-0.5'>
+                  {t('bind_github_bonus_desc', '您当前额度已用尽且尚未绑定 GitHub。立即绑定账号，即可立得 $0.20 (100,000) 免费测试额度，立即调试 API 接口！')}
+                </p>
+              </div>
+            </div>
+            <Button size='sm' className='shrink-0 bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-600 dark:hover:bg-amber-700' render={<Link to='/profile' />}>
+              {t('bind_now', '立即绑定')}
+              <ArrowRight className='size-4 ml-1' />
+            </Button>
+          </div>
+        ) : (
+          <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/40 rounded-2xl shadow-xs backdrop-blur-xs'>
+            <div className='flex items-center gap-3'>
+              <span className='flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/40 border border-emerald-200/50 dark:border-emerald-800/30 text-emerald-600 dark:text-emerald-400'>
+                <Sparkles className='size-5' />
+              </span>
+              <div>
+                <div className='flex items-center gap-2 flex-wrap'>
+                  <h4 className='text-sm font-semibold text-emerald-800 dark:text-emerald-200'>
+                    {t('active_trial_credit_title', '🎁 $0.20 免费体验额度已生效（约可调用 300,000 Tokens）')}
+                  </h4>
+                  <Badge variant='outline' className='border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold'>
+                    {t('Ready to Test', '立即可测')}
+                  </Badge>
+                </div>
+                <p className='text-xs text-emerald-600 dark:text-emerald-400 mt-0.5'>
+                  {t('active_trial_credit_desc', '全面支持 DeepSeek V4 Flash / Qwen 3.8 / GLM 5.3 极速推理。您可直接在下方测试卡片中免配置发起首测！')}
+                </p>
+              </div>
+            </div>
+            <div className='flex items-center gap-2 shrink-0'>
+              <Button size='sm' variant='outline' className='border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10' render={<Link to='/profile' />}>
+                <IconGithub className='size-3.5 mr-1.5' />
+                {t('bind_github_extra', '绑定 GitHub 领更多')}
+              </Button>
             </div>
           </div>
-          <Button size='sm' className='shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-600 dark:hover:bg-emerald-700' render={<Link to='/profile' />}>
-            {t('bind_now', '立即绑定')}
-            <ArrowRight className='size-4 ml-1' />
-          </Button>
-        </div>
+        )
+      )}
+
+      {/* ⚡ 新用户若尚未调用过 API (request_count === 0)，将即测卡片置顶以实现 0 门槛冷启动 */}
+      {(user?.request_count ?? 0) === 0 && (
+        <InstantTestCard
+          apiKey={requestExample.rawApiKey}
+          baseUrl={requestExample.baseUrl}
+          userEmail={user?.email}
+        />
       )}
       {setupGuideExpanded ? (
         <CardStaggerContainer className='grid items-stretch gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]'>
@@ -964,12 +1004,14 @@ export function OverviewDashboard() {
         </CardStaggerContainer>
       )}
 
-      {/* ⚡ 10秒极速在线测试组件 (免配置即测，解决新用户测试冷启动门槛) */}
-      <InstantTestCard
-        apiKey={requestExample.rawApiKey}
-        baseUrl={requestExample.baseUrl}
-        userEmail={user?.email}
-      />
+      {/* ⚡ 10秒极速在线测试组件 (已发起过请求的用户保留在常规位置) */}
+      {(user?.request_count ?? 0) > 0 && (
+        <InstantTestCard
+          apiKey={requestExample.rawApiKey}
+          baseUrl={requestExample.baseUrl}
+          userEmail={user?.email}
+        />
+      )}
 
       <SummaryCards />
 

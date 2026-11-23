@@ -79,5 +79,9 @@
   "You understand and independently bear legal responsibility arising from deployment, operation, and charging behavior.": "You understand and independently bear legal responsibility arising from deployment, operation, and charging behavior.",
   "You understand this compliance reminder is only for risk notice and does not constitute legal advice, a compliance review conclusion, or a guarantee of the legality of your use of this system; you should consult professional legal or compliance advisors based on your actual business scenario.": "You understand this compliance reminder is only for risk notice and does not constitute legal advice, a compliance review conclusion, or a guarantee of the legality of your use of this system; you should consult professional legal or compliance advisors based on your actual business scenario.",
   "Your account balance is 0. Bind your GitHub account to get $0.20 free credit instantly for API testing!": "Your account balance is 0. Bind your GitHub account to get $0.20 free credit instantly for API testing!",
-  "Your account balance is 0. Please top up your account to continue using our services.": "Your account balance is 0. Please top up your account to continue using our services."
+  "Your account balance is 0. Please top up your account to continue using our services.": "Your account balance is 0. Please top up your account to continue using our services.",
+  "API key is ready. Copied / send to your email or configure on your desktop client (Cursor/Cherry Studio).": "API key is ready. Copied / send to your email or configure on your desktop client (Cursor/Cherry Studio).",
+  "Send to My Email": "Send to My Email",
+  "Mail client opened! Send the configuration to your inbox.": "Mail client opened! Send the configuration to your inbox.",
+  "Authentication failed. Please verify API key permissions.": "Authentication failed. Please verify API key permissions."
 }

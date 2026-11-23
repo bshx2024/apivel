@@ -29,6 +29,16 @@ func SetWebRouter(router *gin.Engine, assets ThemeAssets) {
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
 	router.Use(middleware.GlobalWebRateLimit())
 	router.Use(middleware.Cache())
+
+	// Explicit high-intent SEO/GEO landing pages (avoids trailing slash redirect loop)
+	serveLanding := func(c *gin.Context, filename string) {
+		c.Header("Cache-Control", "public, max-age=3600")
+		c.FileFromFS(filename, themeFS)
+	}
+	router.GET("/deepseek-api-pricing", func(c *gin.Context) { serveLanding(c, "deepseek-api-pricing.html") })
+	router.GET("/openrouter-alternative", func(c *gin.Context) { serveLanding(c, "openrouter-alternative.html") })
+	router.GET("/qwen-api-pricing", func(c *gin.Context) { serveLanding(c, "qwen-api-pricing.html") })
+
 	router.Use(static.Serve("/", themeFS))
 	router.NoRoute(func(c *gin.Context) {
 		c.Set(middleware.RouteTagKey, "web")

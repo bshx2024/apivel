@@ -20,8 +20,9 @@ import { useState, useCallback } from 'react'
 import { Check, Copy, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { copyToClipboard } from '@/lib/copy-to-clipboard'
+import { copyToClipboard, isMobileDevice, sendKeyToEmail } from '@/lib/copy-to-clipboard'
 import { track } from '@/lib/tracker'
+import { useAuthStore } from '@/stores/auth-store'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
@@ -39,6 +40,7 @@ import { useApiKeys } from './api-keys-provider'
 
 export function ApiKeyCell({ apiKey }: { apiKey: ApiKey }) {
   const { t } = useTranslation()
+  const user = useAuthStore((state) => state.auth.user)
   const {
     resolveRealKey,
     resolvedKeys,
@@ -70,15 +72,32 @@ export function ApiKeyCell({ apiKey }: { apiKey: ApiKey }) {
       if (ok) {
         markKeyCopied(apiKey.id)
         track('copy_api_key', { from: 'table_cell', id: apiKey.id })
-        toast.success(t('API Key 已复制！可在 Cursor、Claude Code 或 Python 中直接使用', 'API Key 已复制！可在 Cursor、Claude Code 或 Python 中直接使用'), {
-          action: {
-            label: t('去网页测试 →', '去网页测试 →'),
-            onClick: () => window.location.assign('/playground'),
-          },
-        })
+        
+        if (isMobileDevice()) {
+          toast.success(
+            t('API Key 已复制！可在移动端 Playground 测试，或一键发至邮箱电脑使用', 'API Key 已复制！可在移动端 Playground 测试，或一键发至邮箱电脑使用'),
+            {
+              action: {
+                label: t('发到我的邮箱 →', '发到我的邮箱 →'),
+                onClick: () => sendKeyToEmail(realKey, user?.email),
+              },
+              duration: 6000,
+            }
+          )
+        } else {
+          toast.success(
+            t('API Key 已复制！可在 Cursor、Claude Code 或 Python 中直接使用', 'API Key 已复制！可在 Cursor、Claude Code 或 Python 中直接使用'),
+            {
+              action: {
+                label: t('去网页测试 →', '去网页测试 →'),
+                onClick: () => window.location.assign('/playground'),
+              },
+            }
+          )
+        }
       }
     }
-  }, [resolvedFullKey, resolveRealKey, apiKey.id, markKeyCopied, t])
+  }, [resolvedFullKey, resolveRealKey, apiKey.id, markKeyCopied, t, user?.email])
 
   return (
     <div className='flex items-center'>

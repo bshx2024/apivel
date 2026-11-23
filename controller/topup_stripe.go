@@ -87,13 +87,22 @@ func (*StripeAdaptor) RequestPay(c *gin.Context, req *StripePayRequest) {
 	}
 
 	id := c.GetInt("id")
+
+	// 支付风控拦截 (防高频试卡与未完成订单堆积)
+	if allowed, reason := service.CheckPaymentAllowed(c.Request.Context(), id); !allowed {
+		c.JSON(http.StatusOK, gin.H{"message": "error", "data": reason})
+		return
+	}
+	// 作废用户此前未完成的待支付订单，防止堆积
+	service.CancelUserPendingTopUps(c.Request.Context(), id)
+
 	user, _ := model.GetUserById(id, false)
 	chargedMoney := GetChargedAmount(float64(req.Amount), *user)
 
 	reference := fmt.Sprintf("new-api-ref-%d-%d-%s", user.Id, time.Now().UnixMilli(), randstr.String(4))
 	referenceId := "ref_" + common.Sha1([]byte(reference))
 
-	payLink, err := genStripeLink(referenceId, user.StripeCustomer, user.Email, req.Amount, req.SuccessURL, req.CancelURL)
+	payLink, sessionId, err := genStripeLink(referenceId, user.StripeCustomer, user.Email, req.Amount, req.SuccessURL, req.CancelURL)
 	if err != nil {
 		logger.LogError(c.Request.Context(), fmt.Sprintf("Stripe 创建 Checkout Session 失败 user_id=%d trade_no=%s amount=%d error=%q", id, referenceId, req.Amount, err.Error()))
 		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "拉起支付失败"})
@@ -105,6 +114,7 @@ func (*StripeAdaptor) RequestPay(c *gin.Context, req *StripePayRequest) {
 		Amount:          req.Amount,
 		Money:           chargedMoney,
 		TradeNo:         referenceId,
+		PaymentTradeNo:  sessionId,
 		PaymentMethod:   model.PaymentMethodStripe,
 		PaymentProvider: model.PaymentProviderStripe,
 		CreateTime:      time.Now().Unix(),
@@ -339,10 +349,10 @@ func sessionExpired(ctx context.Context, event stripe.Event) {
 //   - successURL: custom URL to redirect after successful payment (empty for default)
 //   - cancelURL: custom URL to redirect when payment is canceled (empty for default)
 //
-// Returns the checkout session URL or an error if the session creation fails.
-func genStripeLink(referenceId string, customerId string, email string, amount int64, successURL string, cancelURL string) (string, error) {
+// Returns the checkout session URL, session ID, or an error if the session creation fails.
+func genStripeLink(referenceId string, customerId string, email string, amount int64, successURL string, cancelURL string) (string, string, error) {
 	if !strings.HasPrefix(setting.StripeApiSecret, "sk_") && !strings.HasPrefix(setting.StripeApiSecret, "rk_") {
-		return "", fmt.Errorf("无效的Stripe API密钥")
+		return "", "", fmt.Errorf("无效的Stripe API密钥")
 	}
 
 	stripe.Key = setting.StripeApiSecret
@@ -381,10 +391,10 @@ func genStripeLink(referenceId string, customerId string, email string, amount i
 
 	result, err := session.New(params)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return result.URL, nil
+	return result.URL, result.ID, nil
 }
 
 func GetChargedAmount(count float64, user model.User) float64 {
@@ -423,4 +433,125 @@ func getStripeMinTopup() int64 {
 		minTopup = minTopup * int(common.QuotaPerUnit)
 	}
 	return int64(minTopup)
+}
+
+// SyncAndVerifyStripeOrder 主动向 Stripe 官方查询并核验订单支付状态（企业级双向对账机制）
+func SyncAndVerifyStripeOrder(ctx context.Context, tradeNo string, callerIp string) (bool, error) {
+	if tradeNo == "" {
+		return false, errors.New("缺少订单号")
+	}
+
+	LockOrder(tradeNo)
+	defer UnlockOrder(tradeNo)
+
+	topUp := model.GetTopUpByTradeNo(tradeNo)
+	if topUp == nil {
+		return false, errors.New("订单不存在")
+	}
+	if topUp.PaymentProvider != model.PaymentProviderStripe {
+		return false, errors.New("非 Stripe 订单")
+	}
+	if topUp.Status == common.TopUpStatusSuccess {
+		return true, nil
+	}
+	if topUp.Status != common.TopUpStatusPending {
+		return false, fmt.Errorf("订单状态已终结: %s", topUp.Status)
+	}
+
+	if !strings.HasPrefix(setting.StripeApiSecret, "sk_") && !strings.HasPrefix(setting.StripeApiSecret, "rk_") {
+		return false, errors.New("Stripe 未配置有效密钥")
+	}
+	stripe.Key = setting.StripeApiSecret
+
+	var sess *stripe.CheckoutSession
+	var err error
+
+	if topUp.PaymentTradeNo != "" && strings.HasPrefix(topUp.PaymentTradeNo, "cs_") {
+		sess, err = session.Get(topUp.PaymentTradeNo, nil)
+	} else {
+		// 容错搜索：匹配 client_reference_id
+		params := &stripe.CheckoutSessionListParams{}
+		params.Limit = stripe.Int64(20)
+		iter := session.List(params)
+		for iter.Next() {
+			s := iter.CheckoutSession()
+			if s != nil && s.ClientReferenceID == tradeNo {
+				sess = s
+				break
+			}
+		}
+		if iter.Err() != nil {
+			err = iter.Err()
+		}
+	}
+
+	if err != nil {
+		logger.LogWarn(ctx, fmt.Sprintf("主动查询 Stripe Session 失败 trade_no=%s: %v", tradeNo, err))
+		return false, err
+	}
+	if sess == nil {
+		return false, errors.New("Stripe 暂无该订单支付记录")
+	}
+
+	if topUp.PaymentTradeNo == "" && sess.ID != "" {
+		_ = model.UpdateTopUpPaymentTradeNo(tradeNo, sess.ID)
+	}
+
+	customerId := ""
+	if sess.Customer != nil {
+		customerId = sess.Customer.ID
+	}
+
+	if sess.Status == stripe.CheckoutSessionStatusComplete && sess.PaymentStatus == stripe.CheckoutSessionPaymentStatusPaid {
+		logger.LogInfo(ctx, fmt.Sprintf("主动对账核验成功，Stripe 订单已完成支付 trade_no=%s session_id=%s customer=%s", tradeNo, sess.ID, customerId))
+		if err := model.Recharge(tradeNo, customerId, callerIp); err != nil {
+			logger.LogError(ctx, fmt.Sprintf("主动对账入账失败 trade_no=%s: %v", tradeNo, err))
+			return false, err
+		}
+		service.ResetPaymentFailure(ctx, topUp.UserId)
+		return true, nil
+	} else if sess.Status == stripe.CheckoutSessionStatusExpired {
+		logger.LogInfo(ctx, fmt.Sprintf("主动对账检测到订单在 Stripe 已过期 trade_no=%s session_id=%s", tradeNo, sess.ID))
+		_ = model.UpdatePendingTopUpStatus(tradeNo, model.PaymentProviderStripe, common.TopUpStatusExpired)
+		return false, errors.New("订单已过期，请重新发起充值")
+	}
+
+	return false, nil
+}
+
+type UserCheckStripePayRequest struct {
+	TradeNo string `json:"trade_no"`
+}
+
+// UserCheckStripePay 供用户控制台回跳或主动查询支付到账情况（兜底查单）
+func UserCheckStripePay(c *gin.Context) {
+	var req UserCheckStripePayRequest
+	if err := c.ShouldBindJSON(&req); err != nil || req.TradeNo == "" {
+		common.ApiErrorMsg(c, "参数错误")
+		return
+	}
+
+	id := c.GetInt("id")
+	topUp := model.GetTopUpByTradeNo(req.TradeNo)
+	if topUp == nil || topUp.UserId != id {
+		common.ApiErrorMsg(c, "订单不存在")
+		return
+	}
+
+	if topUp.Status == common.TopUpStatusSuccess {
+		common.ApiSuccess(c, gin.H{"status": "success", "message": "支付已到账"})
+		return
+	}
+
+	ok, err := SyncAndVerifyStripeOrder(c.Request.Context(), req.TradeNo, c.ClientIP())
+	if err != nil {
+		common.ApiErrorMsg(c, err.Error())
+		return
+	}
+	if ok {
+		common.ApiSuccess(c, gin.H{"status": "success", "message": "核验成功，额度已充入账户"})
+		return
+	}
+
+	common.ApiSuccess(c, gin.H{"status": "pending", "message": "Stripe 显示该订单尚未完成付款，若已扣款请稍后刷新"})
 }

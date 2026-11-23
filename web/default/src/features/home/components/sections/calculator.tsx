@@ -73,16 +73,16 @@ export function Calculator() {
         <AnimateInView className="text-center max-w-3xl mx-auto space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-500 backdrop-blur-sm">
             <Zap className="size-3.5 text-blue-400" />
-            {t('Interactive GPT API Price Calculator')}
+            {t('Interactive DeepSeek API Pricing Calculator')}
           </div>
           <h2 className="text-3xl leading-tight font-bold tracking-tight md:text-4xl">
-            {t('GPT API Price Calculator & Cost Estimator')}
+            {t('DeepSeek API Pricing Calculator: Real-Time Token & Cost Estimator')}
             <span className="block bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent mt-1">
               {t('Transparent Pay-Per-Token Pricing')}
             </span>
           </h2>
           <p className="text-muted-foreground text-sm leading-relaxed max-w-2xl mx-auto">
-            {t('Compare GPT API price per token. Input your prompt & completion token volume to calculate real-time savings compared to legacy OpenAI rates.')}
+            {t('Estimate your monthly DeepSeek API token cost and calculate exact savings compared to OpenAI GPT-4o. Use the interactive sliders below to preview per-request and monthly bills in real time.')}
           </p>
         </AnimateInView>
 
@@ -95,9 +95,9 @@ export function Calculator() {
                 <CalcIcon className="size-6" />
               </div>
               <div>
-                <h3 className="text-xl font-bold tracking-tight">{t('Cost & Usage Estimator')}</h3>
+                <h3 className="text-xl font-bold tracking-tight">{t('Estimate Your DeepSeek API Token Cost & Monthly Savings')}</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {t('Compare and plan your token usage for 40+ premier LLM providers')}
+                  {t('Compare and plan your token usage for production-ready Chinese models')}
                 </p>
               </div>
             </div>
@@ -135,7 +135,7 @@ export function Calculator() {
                   type="range"
                   name="input_tokens"
                   min="100"
-                  max="10000"
+                  max="16000"
                   step="100"
                   value={inputTokens}
                   onChange={(e) => setInputTokens(Number(e.target.value))}
@@ -153,7 +153,7 @@ export function Calculator() {
                   type="range"
                   name="output_tokens"
                   min="50"
-                  max="4000"
+                  max="8000"
                   step="50"
                   value={outputTokens}
                   onChange={(e) => setOutputTokens(Number(e.target.value))}
@@ -170,9 +170,9 @@ export function Calculator() {
                 <input
                   type="range"
                   name="volume"
-                  min="5000"
-                  max="1000000"
-                  step="5000"
+                  min="1000"
+                  max="500000"
+                  step="1000"
                   value={monthlyRequests}
                   onChange={(e) => setMonthlyRequests(Number(e.target.value))}
                   className="w-full h-2 bg-border/40 rounded-lg appearance-none cursor-pointer accent-blue-500"
@@ -182,23 +182,38 @@ export function Calculator() {
             </div>
 
               {/* Calculations Result Footer */}
-              <div className="border-t border-border/40 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 bg-background/80 p-5 rounded-xl border border-border/30">
+              <div className="border-t border-border/40 pt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 bg-background/80 p-5 rounded-xl border border-border/30">
                 <div>
-                  <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">{t('Estimated Monthly Cost')}</p>
+                  <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">{t('Estimated APIVEL Spend')}</p>
                   <p className="text-3xl font-extrabold text-blue-500 mt-1 font-mono">
                     ${estimatedCost.toFixed(2)} <span className="text-xs font-semibold text-muted-foreground">/mo</span>
                   </p>
+                  <p className="text-xs text-muted-foreground mt-1 font-mono">
+                    ${((estimatedCost / monthlyRequests) || 0).toFixed(5)} / req
+                  </p>
                 </div>
-                <div className="text-right sm:border-l border-border/40 sm:pl-6">
-                  <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">{t('Single Request Cost')}</p>
-                  <p className="text-base font-bold mt-1 font-mono text-foreground">
-                    ${((estimatedCost / monthlyRequests) || 0).toFixed(5)}
+                <div>
+                  <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">{t('OpenAI GPT-4o Cost')}</p>
+                  <p className="text-3xl font-extrabold text-muted-foreground mt-1 font-mono">
+                    ${(((inputTokens / 1000000 * 2.50 + outputTokens / 1000000 * 10.00) * monthlyRequests) || 0).toFixed(2)}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    at $2.50 in / $10.00 out per 1M
+                  </p>
+                </div>
+                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3">
+                  <p className="text-xs text-emerald-500 font-bold uppercase tracking-wider">{t('Monthly Savings')}</p>
+                  <p className="text-xl font-bold text-emerald-500 mt-1 font-mono">
+                    Save ${(Math.max(0, ((inputTokens / 1000000 * 2.50 + outputTokens / 1000000 * 10.00) * monthlyRequests) - estimatedCost)).toFixed(2)}/mo
+                  </p>
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
+                    95% cheaper than GPT-4o
                   </p>
                 </div>
               </div>
 
               <p className="text-xs text-muted-foreground/80 text-center pt-2 italic">
-                *Try it now: with 1,000 input / 500 output tokens × 50K requests/mo, DeepSeek costs ~$11/mo. No account needed to preview pricing.*
+                *Example: 50,000 requests/mo with 1K input / 500 output tokens on DeepSeek V4 Flash costs ~$15/month. Zero subscription lock-ins.*
               </p>
             </form>
 

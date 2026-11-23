@@ -146,6 +146,24 @@ export function SurveyStep({ onComplete, onSkip }: SurveyStepProps) {
     onComplete(data)
   }
 
+  const handleFastTrack = (presetUseCase: string, presetModels: string[], presetBudget: string) => {
+    const data: SurveyData = { source, useCase: presetUseCase, models: presetModels, budget: presetBudget }
+    track('onboarding_survey_submitted', {
+      source: data.source,
+      use_case: data.useCase,
+      models: data.models.join(','),
+      budget: data.budget,
+      fast_track: true,
+    })
+    try {
+      localStorage.setItem('apivel_user_persona', JSON.stringify(data))
+      localStorage.setItem('apivel_onboarding_survey_done', 'true')
+    } catch {
+      /* ignore */
+    }
+    onComplete(data)
+  }
+
   return (
     <div className='flex flex-col h-full max-h-[80vh] overflow-y-auto px-6 py-5 space-y-6'>
       {/* Step Indicator Header */}
@@ -185,6 +203,65 @@ export function SurveyStep({ onComplete, onSkip }: SurveyStepProps) {
         <p className='text-xs sm:text-sm text-muted-foreground leading-relaxed'>
           {t('Help us customize your low-latency routing nodes, concurrency limits, and dedicated models.')}
         </p>
+      </div>
+
+      {/* 1-Click Fast Track (Progressive Profiling) */}
+      <div className='rounded-2xl border border-primary/30 bg-primary/5 p-3.5 space-y-2.5 shadow-xs'>
+        <div className='flex items-center justify-between'>
+          <span className='text-xs font-bold text-foreground flex items-center gap-1.5'>
+            <Zap className='h-3.5 w-3.5 text-amber-500 fill-current' />
+            {t('survey_fast_track_title', '⚡ 1-Click Setup: What is your primary scenario?')}
+          </span>
+          <span className='text-[10px] text-muted-foreground font-medium'>
+            {t('survey_fast_track_hint', 'Click one to finish in 1s')}
+          </span>
+        </div>
+        <div className='grid grid-cols-1 sm:grid-cols-3 gap-2'>
+          <button
+            type='button'
+            onClick={() => handleFastTrack('Tools', ['deepseek', 'qwen'], 'under_20')}
+            className='p-2.5 rounded-xl border border-border/70 hover:border-primary hover:bg-primary/10 text-left transition-all cursor-pointer group shadow-2xs'
+          >
+            <div className='text-xs font-bold text-foreground group-hover:text-primary flex items-center gap-1.5'>
+              <span>💻</span> {t('AI Coding')}
+            </div>
+            <p className='text-[10px] text-muted-foreground mt-0.5 line-clamp-1'>
+              Cursor, Claude Code, Cline
+            </p>
+          </button>
+          <button
+            type='button'
+            onClick={() => handleFastTrack('Indie', ['deepseek', 'qwen'], 'under_20')}
+            className='p-2.5 rounded-xl border border-border/70 hover:border-primary hover:bg-primary/10 text-left transition-all cursor-pointer group shadow-2xs'
+          >
+            <div className='text-xs font-bold text-foreground group-hover:text-primary flex items-center gap-1.5'>
+              <span>🚀</span> {t('Indie Hacker SaaS')}
+            </div>
+            <p className='text-[10px] text-muted-foreground mt-0.5 line-clamp-1'>
+              Solo products, bots, apps
+            </p>
+          </button>
+          <button
+            type='button'
+            onClick={() => handleFastTrack('Production', ['deepseek', 'qwen', 'glm'], '20_100')}
+            className='p-2.5 rounded-xl border border-border/70 hover:border-primary hover:bg-primary/10 text-left transition-all cursor-pointer group shadow-2xs'
+          >
+            <div className='text-xs font-bold text-foreground group-hover:text-primary flex items-center gap-1.5'>
+              <span>🏢</span> {t('Production API')}
+            </div>
+            <p className='text-[10px] text-muted-foreground mt-0.5 line-clamp-1'>
+              High concurrency & SLA
+            </p>
+          </button>
+        </div>
+      </div>
+
+      <div className='flex items-center gap-2 pt-1'>
+        <div className='h-px flex-1 bg-border/50' />
+        <span className='text-[10px] text-muted-foreground uppercase tracking-widest font-semibold'>
+          {t('or customize details manually below')}
+        </span>
+        <div className='h-px flex-1 bg-border/50' />
       </div>
 
       {/* Question 1: Source */}

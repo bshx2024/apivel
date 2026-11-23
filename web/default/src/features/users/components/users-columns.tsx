@@ -41,6 +41,134 @@ function getQuotaProgressColor(percentage: number): string {
   return '[&_[data-slot=progress-indicator]]:bg-emerald-500'
 }
 
+function getCountryFlag(code?: string): string {
+  if (!code || code.length !== 2 || code === '--') return ''
+  const upper = code.toUpperCase()
+  const offset = 127397
+  try {
+    return String.fromCodePoint(...[...upper].map((c) => c.charCodeAt(0) + offset))
+  } catch {
+    return ''
+  }
+}
+
+function formatSourceTitle(source?: string, referrer?: string): string {
+  if (source && source.trim()) {
+    const s = source.trim().toLowerCase()
+    if (s.includes('chatgpt')) return 'ChatGPT.Com'
+    if (s.includes('google')) return 'Google'
+    if (s.includes('bing')) return 'Bing'
+    if (s.includes('twitter') || s === 'x') return 'X.com'
+    if (s.includes('github')) return 'GitHub'
+    if (s === 'direct') return 'Direct'
+    return source.charAt(0).toUpperCase() + source.slice(1)
+  }
+  if (referrer && referrer.trim()) {
+    try {
+      const host = new URL(referrer.startsWith('http') ? referrer : `https://${referrer}`).hostname
+      return host.replace(/^www\./, '')
+    } catch {
+      return referrer.slice(0, 16)
+    }
+  }
+  return 'Direct'
+}
+
+function SourceCountryCell({ user }: { user: User }) {
+  const { t } = useTranslation()
+  const sourceName = formatSourceTitle(user.first_source, user.first_referrer)
+  const isDirect = sourceName.toLowerCase() === 'direct'
+  const countryCode = user.register_country ? user.register_country.toUpperCase() : ''
+  const flag = getCountryFlag(countryCode)
+  const landingPath = user.first_landing || user.first_referrer || ''
+
+  return (
+    <Tooltip>
+      <TooltipTrigger render={<div className='flex flex-col gap-1 min-w-[140px] max-w-[210px] cursor-help' />}>
+        <div className='flex items-center gap-1.5 flex-wrap'>
+          {/* Source Badge */}
+          <span
+            className={cn(
+              'inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold tracking-wide border',
+              isDirect
+                ? 'bg-muted text-muted-foreground border-border/60'
+                : 'bg-zinc-800 text-zinc-100 border-zinc-700 dark:bg-zinc-900 dark:border-zinc-700/80 shadow-xs'
+            )}
+          >
+            {sourceName}
+          </span>
+
+          {/* Country Badge */}
+          {countryCode && countryCode !== '--' ? (
+            <span className='inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-bold bg-sky-500/15 text-sky-400 border border-sky-500/30'>
+              {flag && <span>{flag}</span>}
+              <span>{countryCode}</span>
+            </span>
+          ) : (
+            <span className='inline-flex items-center px-1.5 py-0.5 rounded text-[11px] text-muted-foreground/60 bg-muted/40 border border-border/40'>
+              --
+            </span>
+          )}
+        </div>
+
+        {/* Sub-text: Landing / Campaign / Referrer */}
+        {landingPath && (
+          <span className='text-[10px] font-mono text-muted-foreground/70 truncate max-w-[190px]' title={landingPath}>
+            {landingPath}
+          </span>
+        )}
+      </TooltipTrigger>
+      <TooltipContent className='space-y-1.5 text-xs max-w-xs p-3'>
+        <div className='font-semibold border-b border-border/50 pb-1'>
+          {t('User Attribution & Origin')}
+        </div>
+        <div className='grid grid-cols-[85px_1fr] gap-x-2 gap-y-1 text-[11px]'>
+          <span className='text-muted-foreground'>{t('Source')}:</span>
+          <span className='font-mono font-medium'>{user.first_source || 'Direct'}</span>
+          {user.first_medium && (
+            <>
+              <span className='text-muted-foreground'>{t('Medium')}:</span>
+              <span className='font-mono'>{user.first_medium}</span>
+            </>
+          )}
+          {user.first_campaign && (
+            <>
+              <span className='text-muted-foreground'>{t('Campaign')}:</span>
+              <span className='font-mono'>{user.first_campaign}</span>
+            </>
+          )}
+          {user.first_referrer && (
+            <>
+              <span className='text-muted-foreground'>{t('Referrer')}:</span>
+              <span className='font-mono break-all'>{user.first_referrer}</span>
+            </>
+          )}
+          {user.first_landing && (
+            <>
+              <span className='text-muted-foreground'>{t('Landing')}:</span>
+              <span className='font-mono break-all'>{user.first_landing}</span>
+            </>
+          )}
+          <span className='text-muted-foreground'>{t('Country')}:</span>
+          <span>{countryCode || t('Unknown')} {flag}</span>
+          {user.register_ip && (
+            <>
+              <span className='text-muted-foreground'>{t('Register IP')}:</span>
+              <span className='font-mono'>{user.register_ip}</span>
+            </>
+          )}
+          {user.last_login_ip && (
+            <>
+              <span className='text-muted-foreground'>{t('Last Login IP')}:</span>
+              <span className='font-mono'>{user.last_login_ip}</span>
+            </>
+          )}
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
 export function useUsersColumns(): ColumnDef<User>[] {
   const { t } = useTranslation()
   return [
@@ -337,6 +465,15 @@ export function useUsersColumns(): ColumnDef<User>[] {
       meta: { label: t('Invite Info'), mobileHidden: true },
     },
     {
+      id: 'source_country',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('Source / Country')} />
+      ),
+      cell: ({ row }) => <SourceCountryCell user={row.original} />,
+      enableSorting: false,
+      meta: { label: t('Source / Country') },
+    },
+    {
       accessorKey: 'created_at',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('Created At')} />
@@ -358,10 +495,18 @@ export function useUsersColumns(): ColumnDef<User>[] {
       ),
       cell: ({ row }) => {
         const ts = row.getValue('last_login_at') as number | undefined
+        const ip = row.original.last_login_ip || row.original.register_ip
         return (
-          <span className='text-muted-foreground text-sm'>
-            {ts ? formatTimestamp(ts) : '-'}
-          </span>
+          <div className='flex flex-col text-xs'>
+            <span className='text-muted-foreground'>
+              {ts ? formatTimestamp(ts) : '-'}
+            </span>
+            {ip && (
+              <span className='font-mono text-[11px] text-muted-foreground/75' title={t('IP Address')}>
+                {ip}
+              </span>
+            )}
+          </div>
         )
       },
       meta: { label: t('Last Login'), mobileHidden: true },
