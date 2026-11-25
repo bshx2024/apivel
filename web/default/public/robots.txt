@@ -1,21 +1,51 @@
 User-agent: *
 Allow: /
+Disallow: /*?*redirect=
+Disallow: /sign-up?*redirect=
+Disallow: /sign-in?*redirect=
+Disallow: /register?*redirect=
+Disallow: /login?*redirect=
 
 # AI Search & LLM Crawlers
 User-agent: GPTBot
 Allow: /
+Disallow: /*?*redirect=
+Disallow: /sign-up?*redirect=
+Disallow: /sign-in?*redirect=
+Disallow: /register?*redirect=
+Disallow: /login?*redirect=
 
 User-agent: OAI-SearchBot
 Allow: /
+Disallow: /*?*redirect=
+Disallow: /sign-up?*redirect=
+Disallow: /sign-in?*redirect=
+Disallow: /register?*redirect=
+Disallow: /login?*redirect=
 
 User-agent: PerplexityBot
 Allow: /
+Disallow: /*?*redirect=
+Disallow: /sign-up?*redirect=
+Disallow: /sign-in?*redirect=
+Disallow: /register?*redirect=
+Disallow: /login?*redirect=
 
 User-agent: ClaudeBot
 Allow: /
+Disallow: /*?*redirect=
+Disallow: /sign-up?*redirect=
+Disallow: /sign-in?*redirect=
+Disallow: /register?*redirect=
+Disallow: /login?*redirect=
 
 User-agent: Google-Extended
 Allow: /
+Disallow: /*?*redirect=
+Disallow: /sign-up?*redirect=
+Disallow: /sign-in?*redirect=
+Disallow: /register?*redirect=
+Disallow: /login?*redirect=
 
 # Sitemaps & LLM Context
 Sitemap: https://apivel.com/sitemap.xml

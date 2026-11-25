@@ -34,12 +34,14 @@ import { NotFoundError } from '@/features/errors/not-found-error'
 import { getSetupStatus } from '@/features/setup/api'
 import { saveAffiliateCode } from '@/features/auth/lib/storage'
 import { initAttributionTracker } from '@/lib/attribution'
+import { useRouteSeo } from '@/lib/route-seo'
 import { QuotaDepletedModal } from '@/components/quota-depleted-modal'
 import { SvipComparisonModal } from '@/components/svip-comparison-modal'
 
 function RootComponent() {
   // Load system configuration (logo, system name, etc.) from backend
   useSystemConfig({ autoLoad: true })
+  useRouteSeo()
 
   useEffect(() => {
     initAttributionTracker()

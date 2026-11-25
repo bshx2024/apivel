@@ -39,6 +39,31 @@ func SetWebRouter(router *gin.Engine, assets ThemeAssets) {
 	router.GET("/openrouter-alternative", func(c *gin.Context) { serveLanding(c, "openrouter-alternative.html") })
 	router.GET("/qwen-api-pricing", func(c *gin.Context) { serveLanding(c, "qwen-api-pricing.html") })
 
+	serveSPAIndex := func(c *gin.Context) {
+		c.Header("Cache-Control", "no-cache")
+		var rawPage []byte
+		if common.GetTheme() == "classic" {
+			rawPage = assets.ClassicIndexPage
+		} else {
+			rawPage = assets.DefaultIndexPage
+		}
+		renderedPage, noIndex := applyRouteSEOToHTML(rawPage, c.Request.URL.Path, c.Request.URL.Query())
+		if noIndex {
+			c.Header("X-Robots-Tag", "noindex, nofollow")
+		}
+		c.Data(http.StatusOK, "text/html; charset=utf-8", renderedPage)
+	}
+
+	router.Use(func(c *gin.Context) {
+		if c.Request.URL.Path == "/" && c.Request.URL.Query().Has("redirect") {
+			c.Set(middleware.RouteTagKey, "web")
+			serveSPAIndex(c)
+			c.Abort()
+			return
+		}
+		c.Next()
+	})
+
 	router.Use(static.Serve("/", themeFS))
 	router.NoRoute(func(c *gin.Context) {
 		c.Set(middleware.RouteTagKey, "web")
@@ -46,11 +71,6 @@ func SetWebRouter(router *gin.Engine, assets ThemeAssets) {
 			controller.RelayNotFound(c)
 			return
 		}
-		c.Header("Cache-Control", "no-cache")
-		if common.GetTheme() == "classic" {
-			c.Data(http.StatusOK, "text/html; charset=utf-8", assets.ClassicIndexPage)
-		} else {
-			c.Data(http.StatusOK, "text/html; charset=utf-8", assets.DefaultIndexPage)
-		}
+		serveSPAIndex(c)
 	})
 }
